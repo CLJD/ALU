@@ -1,9 +1,9 @@
 #+title:ALU
 #+author:CLJD
-* Progress Report [20%]
+* Progress Report [40%]
     - [X] Title Page - Charles
     - [ ] Draft Description
-    - [ ] Draft Member Tasks - Charles
+    - [X] Draft Member Tasks - Charles
     - [ ] Draft Software Discovery
     - [ ] Participation Census - All
 * Final Deliverables [11%]
