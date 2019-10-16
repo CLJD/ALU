@@ -14,17 +14,17 @@
     * [ ] Input List - Dylan
     * [ ] Output List - Dylan
     * [ ] Interface List - Dylan
-    * [ ] Module List
+    * [ ] Module List - Charles
     * [ ] Mode List
     * [ ] Circuit Diagram
     * [ ] State Machine Diagrams
     * *Code and Output*
     * [ ] Code (Modules, Interfaces) [0%]
-      * [ ] Add
-      * [ ] Subtract
+      * [ ] Add - Charles
+      * [ ] Subtract 
       * [ ] Multiply
       * [ ] Divide
-      * [ ] Bit shift
+      * [ ] Bit shift - Charles
     * [ ] Output (Show the operations)
 
 * Title Page
