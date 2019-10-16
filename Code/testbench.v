@@ -6,9 +6,16 @@ module AddHalf (input a, b,
    and G2(c_out, a, b);
 endmodule // AddHalf
 
+module AddFull (input a, b, c_in, 
+                output c_out, sum);	 
+   wire w1, w2, w3;				// w1 is c_out; w2 is sum of first half adder
+   AddHalf M1 (a, b, w1, w2);
+   AddHalf M0 (w2, c_in, w3, sum);
+   or (c_out, w1, w3);
+endmodule; // AddFull
+
 module Add(input a, b, cin, 
            output sum, cout);
-
 endmodule; // Add
 
 module Sub(input a, b, 
