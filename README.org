@@ -2,18 +2,18 @@
 #+author:CLJD
 * Deliverables [5%]
     * *Updated Report*
-    * [ ] Title Page 
-    * [ ] Updated Report
-    * [ ] Updated Description
+    * [ ] Title Page - Dylan
+    * [ ] Updated Report - Dylan
+    * [ ] Updated Description - Dylan
     * [ ] Updated Member Tasks List
     * [ ] Updated Software Discovery
     * [ ] Updated Participation Census
     * *System Design*
     * [X] Title Page - Charles
-    * [ ] Parts List
-    * [ ] Input List
-    * [ ] Output List
-    * [ ] Interface List
+    * [ ] Parts List - Dylan
+    * [ ] Input List - Dylan
+    * [ ] Output List - Dylan
+    * [ ] Interface List - Dylan
     * [ ] Module List
     * [ ] Mode List
     * [ ] Circuit Diagram
