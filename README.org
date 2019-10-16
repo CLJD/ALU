@@ -5,7 +5,7 @@
     * [ ] Title Page - Dylan
     * [ ] Updated Report - Dylan
     * [ ] Updated Description - Dylan
-    * [ ] Updated Member Tasks List
+    * [ ] Updated Member Tasks List - All
     * [ ] Updated Software Discovery - Liora
     * [ ] Updated Participation Census - Liora
     * *System Design*
@@ -16,16 +16,16 @@
     * [ ] Interface List - Dylan
     * [ ] Module List - Charles
     * [ ] Mode List - Liora
-    * [ ] Circuit Diagram
-    * [ ] State Machine Diagrams
+    * [ ] Circuit Diagram - Jacob
+    * [ ] State Machine Diagrams - Jacob
     * *Code and Output*
     * [ ] Code (Modules, Interfaces) [0%]
       * [ ] Add - Charles
       * [ ] Subtract - Liora
-      * [ ] Multiply
-      * [ ] Divide
+      * [ ] Multiply - Dylan
+      * [ ] Divide - Jacob
       * [ ] Bit shift - Charles
-    * [ ] Output (Show the operations)
+    * [ ] Output (Show the operations) - All
 
 * Title Page
 * Parts List
