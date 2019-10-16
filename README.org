@@ -17,9 +17,14 @@
     * [ ] Module List
     * [ ] Mode List
     * [ ] Circuit Diagram
-    * [ ] State Machine  Diagrams
+    * [ ] State Machine Diagrams
     * *Code and Output*
-    * [ ] Code (Modules, Interfaces)
+    * [ ] Code (Modules, Interfaces) [0%]
+      * [ ] Add
+      * [ ] Subtract
+      * [ ] Multiply
+      * [ ] Divide
+      * [ ] Bit shift
     * [ ] Output (Show the operations)
 
 * Title Page
