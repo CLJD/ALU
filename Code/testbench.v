@@ -10,6 +10,9 @@ module Sub(input reg a, b,
 
 endmodule; // Sub
 
+/* a shift value greater than 0 will shift right and
+ * a shift value less than 0 will shift left
+ */ 
 module Shift(input reg num, shift,
              output reg shifted);
    
