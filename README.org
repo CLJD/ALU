@@ -5,7 +5,8 @@
     - [ ] Draft Description
     - [X] Draft Member Tasks - Charles
     - [ ] Draft Software Discovery
-    - [ ] Participation Census - All
+    - [ ] Participation Census 
+      this means looking at commit history for each file and deciding who has done what percentage of the project so far
 * Final Deliverables [11%]
     * *Updated Report*
     * [ ] Title Page - Dylan
