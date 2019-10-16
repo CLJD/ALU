@@ -1,5 +1,6 @@
 #+title:ALU
 #+author:CLJD
+#+options: \n:t
 * Progress Report [40%]
     - [X] Title Page - Charles
     - [ ] Draft Description
