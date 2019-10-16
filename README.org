@@ -1,11 +1,11 @@
 #+title:ALU
 #+author:CLJD
-* Deliverables [5%]
+* Deliverables [11%]
     * *Updated Report*
     * [ ] Title Page - Dylan
     * [ ] Updated Report - Dylan
     * [ ] Updated Description - Dylan
-    * [ ] Updated Member Tasks List - All
+    * [X] Updated Member Tasks List - All
     * [ ] Updated Software Discovery - Liora
     * [ ] Updated Participation Census - Liora
     * *System Design*
