@@ -1,8 +1,8 @@
 #+title:ALU
 #+author:CLJD
-* Deliverables [0%]
+* Deliverables [5%]
     * *Updated Report*
-    * [ ] Title Page
+    * [X] Title Page - Charles
     * [ ] Updated Report
     * [ ] Updated Description
     * [ ] Updated Member Tasks List
