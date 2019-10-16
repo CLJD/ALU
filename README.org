@@ -2,14 +2,14 @@
 #+author:CLJD
 * Deliverables [5%]
     * *Updated Report*
-    * [X] Title Page - Charles
+    * [ ] Title Page 
     * [ ] Updated Report
     * [ ] Updated Description
     * [ ] Updated Member Tasks List
     * [ ] Updated Software Discovery
     * [ ] Updated Participation Census
     * *System Design*
-    * [ ] Title Page
+    * [X] Title Page - Charles
     * [ ] Parts List
     * [ ] Input List
     * [ ] Output List
