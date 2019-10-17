@@ -1,12 +1,12 @@
 #+options: \n:t
 #+title:ALU
 #+author:CLJD
-* Progress Report [80%]
+* Progress Report [100%]
     - [X] Title Page - Charles
     - [X] Draft Description - Dylan
     - [X] Draft Member Tasks - Charles
     - [X] Draft Software Discovery - Liora
-    - [ ] Participation Census - Dylan
+    - [X] Participation Census - Dylan
       this means looking at commit history for each file and deciding who has done what percentage of the project so far
 * Final Deliverables [11%]
     * *Updated Report*
