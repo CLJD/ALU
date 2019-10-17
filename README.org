@@ -3,7 +3,7 @@
 #+options: \n:t
 * Progress Report [40%]
     - [X] Title Page - Charles
-    - [ ] Draft Description
+    - [ ] Draft Description - Dylan
     - [X] Draft Member Tasks - Charles
     - [ ] Draft Software Discovery
     - [ ] Participation Census 
