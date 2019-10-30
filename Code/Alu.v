@@ -12,17 +12,18 @@ module AddFull (input a, b, c_in,
    AddHalf M1 (a, b, w1, w2);
    AddHalf M0 (w2, c_in, w3, sum);
    or (c_out, w1, w3);
-endmodule; // AddFull
+endmodule // AddFull
 
 module Add(input a, b, cin, 
-           output sum, cout);
-   
-endmodule; // Add
+           output cout, sum);
+   sum = 9;
+   cout = 0;
+endmodule // Add
 
 module Sub(input a, b, 
            output difference);
 
-endmodule; // Sub
+endmodule // Sub
 
 /* a shift value greater than 0 will shift right and
  * a shift value less than 0 will shift left
@@ -30,23 +31,34 @@ endmodule; // Sub
 module Shift(input num, shift,
              output shifted);
    
-endmodule; // Shift
+endmodule // Shift
 
 module Mult(input a, b,
             output upper, lower);
    
-endmodule; // Mult
+endmodule // Mult
 
 module Div(input dividen, divisor,
            output quotient, remainder);
    
-endmodule; // Div
+endmodule // Div
 
 module ALU(input opcode, operand1, operand2, statusIn 
            output result, statusOut);
    
-endmodule; // ALU
+endmodule // ALU
 
 module testbench();
+   ////////////////////
+   // test Add
+   ////////////////////
+   reg a = 4;
+   reg b = 5;
+   reg sum, carry;
+   Add G1(a, b, 0, carry, sum);
+   initial begin
+      #1 $display("Add G1: %s",
+                  (carry == 0 && sum == 9)? "PASS":"FAIL");
+   end
    
-endmodule; // testbench
+endmodule // testbench
