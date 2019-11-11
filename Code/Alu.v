@@ -1,4 +1,14 @@
 // iverilog
+module Mux2 (out,
+             signal, in1, in2);
+   parameter n = 5;
+   input    [1:0]  signal;
+   input  [n-1:0]  in1;
+   input  [n-1:0]  in2;
+   output [n-1:0] out;
+
+   assign out = (signal[1] ? in1 : in2);
+endmodule // Mux2
 
 module AddHalf (input a, b, 
                 output c_out, sum);
@@ -46,8 +56,11 @@ endmodule // Sub
 /* a shift value greater than 0 will shift right and
  * a shift value less than 0 will shift left
  */ 
-module Shift(input num, shift,
-             output shifted);
+module Shift(num, shift,
+             shifted);
+   input [15:0] num;
+   input [3:0]  shift;          // max shift amount is 15
+   output       shifted;
    
 endmodule // Shift
 
