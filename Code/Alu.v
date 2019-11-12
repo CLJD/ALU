@@ -1,10 +1,11 @@
 // iverilog
 module Mux2 (out, signal, in1, in2);
-   input [1:0]   signal;
-   input [15:0]  in1;
-   input [15:0]  in2;
-   output [15:0] out;
-   assign out = (signal[1] ? in1 : in2);
+   parameter n = 4;
+   input signal;
+   input [n-1:0]  in1;
+   input [n-1:0]  in2;
+   output [n-1:0] out;
+   assign out = (signal ? in1 : in2);
 endmodule // Mux2
 // Decoder4
 // |   in |              out |
@@ -26,7 +27,7 @@ endmodule // Mux2
 // | 1110 | 0100000000000000 |
 // | 1111 | 1000000000000000 |
 module Decoder4(n, out);
-   input [15:0]  n;
+   input [3:0]  n;
    output [15:0] out;
    assign out[0] =  {~n[3] & ~n[2] & ~n[1] & ~n[0]};
    assign out[1] =  {~n[3] & ~n[2] & ~n[1] &  n[0]};
@@ -45,9 +46,31 @@ module Decoder4(n, out);
    assign out[14] = { n[3] &  n[2] &  n[1] & ~n[0]};
    assign out[15] = { n[3] &  n[2] &  n[1] &  n[0]};
 endmodule // Decoder4
+
 // anti-right-arbiter
 // this makes all bits 1 to the right of the first 1 from the left
-module ARA
+module ARA(in, out);
+   input [15:0] in;
+   output [15:0] out;
+
+   assign out[15] = {in[15] | 1'b0};
+   assign out[14] = {in[14] | out[15]};
+   assign out[13] = {in[13] | out[14]};
+   assign out[12] = {in[12] | out[13]};
+   assign out[11] = {in[11] | out[12]};
+   assign out[10] = {in[10] | out[11]};
+   assign out[9] =  {in[9]  | out[10]};
+   assign out[8] =  {in[8]  | out[9]};
+   assign out[7] =  {in[7]  | out[8]};
+   assign out[6] =  {in[6]  | out[7]};
+   assign out[5] =  {in[5]  | out[6]};
+   assign out[4] =  {in[4]  | out[5]};
+   assign out[3] =  {in[3]  | out[4]};
+   assign out[2] =  {in[2]  | out[3]};
+   assign out[1] =  {in[1]  | out[2]};
+   assign out[0] =  {in[0]  | out[1]};
+endmodule // ARA
+
 module AddHalf (input a, b, 
                 output c_out, sum);
    xor G1(sum, a, b);	// Gate instance names are optional
@@ -98,78 +121,116 @@ module Shift(num, shift, shifted);
    input [3:0]   shift;          // max shift amount is 15
    output [15:0] shifted;
    
+   wire [15:0]  layer0;
    wire [15:0]  layer1;
    wire [15:0]  layer2;
    wire [15:0]  layer3;
+   wire [15:0]  layer4;
+   wire [15:0]  layer5;
+   wire [15:0]  layer6;
+   wire [15:0]  layer7;
+   wire [15:0]  layer8;
+   wire [15:0]  layer9;
+   wire [15:0]  layer10;
+   wire [15:0]  layer11;
+   wire [15:0]  layer12;
+   wire [15:0]  layer13;
+   wire [15:0]  layer14;
+   wire [15:0]  layer15;
+
+   wire [15:0]  oneHot;
+   wire [15:0]  shiftLanes;
    
-   // layer 1
-   Mux2 L1_0 (layer1[0], shift[0], num[0], 1'b0);
-   Mux2 L1_1 (layer1[1], shift[0], num[1], num[0]);
-   Mux2 L1_2 (layer1[2], shift[0], num[2], num[1]);
-   Mux2 L1_3 (layer1[3], shift[0], num[3], num[2]);
-   Mux2 L1_4 (layer1[4], shift[0], num[4], num[3]);
-   Mux2 L1_5 (layer1[5], shift[0], num[5], num[4]);
-   Mux2 L1_6 (layer1[6], shift[0], num[6], num[5]);
-   Mux2 L1_7 (layer1[7], shift[0], num[7], num[6]);
-   Mux2 L1_8 (layer1[8], shift[0], num[8], num[7]);
-   Mux2 L1_9 (layer1[9], shift[0], num[9], num[8]);
-   Mux2 L1_10 (layer1[10], shift[0], num[10], num[9]);
-   Mux2 L1_11 (layer1[11], shift[0], num[11], num[10]);
-   Mux2 L1_12 (layer1[12], shift[0], num[12], num[11]);
-   Mux2 L1_13 (layer1[13], shift[0], num[13], num[12]);
-   Mux2 L1_14 (layer1[14], shift[0], num[14], num[13]);
-   Mux2 L1_15 (layer1[15], shift[0], num[15], num[14]);
+   Decoder4 D4(shift, oneHot);
+   ARA Ara(oneHot, shiftLanes);
+   
+   parameter n = 1;
+   // layer 0
+   Mux2 #(n) L0_0 (layer0[0], shiftLanes[0], num[0], 1'b0);
+   Mux2 #(n) L0_1 (layer0[1], shiftLanes[0], num[1], num[0]);
+   Mux2 #(n) L0_2 (layer0[2], shiftLanes[0], num[2], num[1]);
+   Mux2 #(n) L0_3 (layer0[3], shiftLanes[0], num[3], num[2]);
+   Mux2 #(n) L0_4 (layer0[4], shiftLanes[0], num[4], num[3]);
+   Mux2 #(n) L0_5 (layer0[5], shiftLanes[0], num[5], num[4]);
+   Mux2 #(n) L0_6 (layer0[6], shiftLanes[0], num[6], num[5]);
+   Mux2 #(n) L0_7 (layer0[7], shiftLanes[0], num[7], num[6]);
+   Mux2 #(n) L0_8 (layer0[8], shiftLanes[0], num[8], num[7]);
+   Mux2 #(n) L0_9 (layer0[9], shiftLanes[0], num[9], num[8]);
+   Mux2 #(n) L0_10 (layer0[10], shiftLanes[0], num[10], num[9]);
+   Mux2 #(n) L0_11 (layer0[11], shiftLanes[0], num[11], num[10]);
+   Mux2 #(n) L0_12 (layer0[12], shiftLanes[0], num[12], num[11]);
+   Mux2 #(n) L0_13 (layer0[13], shiftLanes[0], num[13], num[12]);
+   Mux2 #(n) L0_14 (layer0[14], shiftLanes[0], num[14], num[13]);
+   Mux2 #(n) L0_15 (layer0[15], shiftLanes[0], num[15], num[14]);
    // layer 2
-   Mux2 L2_0 (layer2[0], shift[1], layer1[0], 1'b0);
-   Mux2 L2_1 (layer2[1], shift[1], layer1[1], 1'b0);
-   Mux2 L2_2 (layer2[2], shift[1], layer1[2], layer1[0]);
-   Mux2 L2_3 (layer2[3], shift[1], layer1[3], layer1[1]);
-   Mux2 L2_4 (layer2[4], shift[1], layer1[4], layer1[2]);
-   Mux2 L2_5 (layer2[5], shift[1], layer1[5], layer1[3]);
-   Mux2 L2_6 (layer2[6], shift[1], layer1[6], layer1[4]);
-   Mux2 L2_7 (layer2[7], shift[1], layer1[7], layer1[5]);
-   Mux2 L2_8 (layer2[8], shift[1], layer1[8], layer1[6]);
-   Mux2 L2_9 (layer2[9], shift[1], layer1[9], layer1[7]);
-   Mux2 L2_10 (layer2[10], shift[1], layer1[10], layer1[8]);
-   Mux2 L2_11 (layer2[11], shift[1], layer1[11], layer1[9]);
-   Mux2 L2_12 (layer2[12], shift[1], layer1[12], layer1[10]);
-   Mux2 L2_13 (layer2[13], shift[1], layer1[13], layer1[11]);
-   Mux2 L2_14 (layer2[14], shift[1], layer1[14], layer1[12]);
-   Mux2 L2_15 (layer2[15], shift[1], layer1[15], layer1[13]);
+   Mux2 #(n) L1_0 (layer1[0], shiftLanes[1], layer0[0], 1'b0);
+   Mux2 #(n) L1_1 (layer1[1], shiftLanes[1], layer0[1], 1'b0);
+   Mux2 #(n) L1_2 (layer1[2], shiftLanes[1], layer0[2], layer0[0]);
+   Mux2 #(n) L1_3 (layer1[3], shiftLanes[1], layer0[3], layer0[1]);
+   Mux2 #(n) L1_4 (layer1[4], shiftLanes[1], layer0[4], layer0[2]);
+   Mux2 #(n) L1_5 (layer1[5], shiftLanes[1], layer0[5], layer0[3]);
+   Mux2 #(n) L1_6 (layer1[6], shiftLanes[1], layer0[6], layer0[4]);
+   Mux2 #(n) L1_7 (layer1[7], shiftLanes[1], layer0[7], layer0[5]);
+   Mux2 #(n) L1_8 (layer1[8], shiftLanes[1], layer0[8], layer0[6]);
+   Mux2 #(n) L1_9 (layer1[9], shiftLanes[1], layer0[9], layer0[7]);
+   Mux2 #(n) L1_10 (layer1[10], shiftLanes[1], layer0[10], layer0[8]);
+   Mux2 #(n) L1_11 (layer1[11], shiftLanes[1], layer0[11], layer0[9]);
+   Mux2 #(n) L1_12 (layer1[12], shiftLanes[1], layer0[12], layer0[10]);
+   Mux2 #(n) L1_13 (layer1[13], shiftLanes[1], layer0[13], layer0[11]);
+   Mux2 #(n) L1_14 (layer1[14], shiftLanes[1], layer0[14], layer0[12]);
+   Mux2 #(n) L1_15 (layer1[15], shiftLanes[1], layer0[15], layer0[13]);
+   // layer 2
+   Mux2 #(n) L2_0 (layer2[0], shiftLanes[2], layer1[0], 1'b0);
+   Mux2 #(n) L2_1 (layer2[1], shiftLanes[2], layer1[1], 1'b0);
+   Mux2 #(n) L2_2 (layer2[2], shiftLanes[2], layer1[2], 1'b0);
+   Mux2 #(n) L2_3 (layer2[3], shiftLanes[2], layer1[3], 1'b0);
+   Mux2 #(n) L2_4 (layer2[4], shiftLanes[2], layer1[4], layer1[0]);
+   Mux2 #(n) L2_5 (layer2[5], shiftLanes[2], layer1[5], layer1[1]);
+   Mux2 #(n) L2_6 (layer2[6], shiftLanes[2], layer1[6], layer1[2]);
+   Mux2 #(n) L2_7 (layer2[7], shiftLanes[2], layer1[7], layer1[3]);
+   Mux2 #(n) L2_8 (layer2[8], shiftLanes[2], layer1[8], layer1[4]);
+   Mux2 #(n) L2_9 (layer2[9], shiftLanes[2], layer1[9], layer1[5]);
+   Mux2 #(n) L2_10 (layer2[10], shiftLanes[2], layer1[10], layer1[6]);
+   Mux2 #(n) L2_11 (layer2[11], shiftLanes[2], layer1[11], layer1[7]);
+   Mux2 #(n) L2_12 (layer2[12], shiftLanes[2], layer1[12], layer1[8]);
+   Mux2 #(n) L2_13 (layer2[13], shiftLanes[2], layer1[13], layer1[9]);
+   Mux2 #(n) L2_14 (layer2[14], shiftLanes[2], layer1[14], layer1[10]);
+   Mux2 #(n) L2_15 (layer2[15], shiftLanes[2], layer1[15], layer1[11]);
    // layer 3
-   Mux2 L3_0 (layer3[0], shift[2], layer2[0], 1'b0);
-   Mux2 L3_1 (layer3[1], shift[2], layer2[1], 1'b0);
-   Mux2 L3_2 (layer3[2], shift[2], layer2[2], 1'b0);
-   Mux2 L3_3 (layer3[3], shift[2], layer2[3], 1'b0);
-   Mux2 L3_4 (layer3[4], shift[2], layer2[4], layer2[0]);
-   Mux2 L3_5 (layer3[5], shift[2], layer2[5], layer2[1]);
-   Mux2 L3_6 (layer3[6], shift[2], layer2[6], layer2[2]);
-   Mux2 L3_7 (layer3[7], shift[2], layer2[7], layer2[3]);
-   Mux2 L3_8 (layer3[8], shift[2], layer2[8], layer2[4]);
-   Mux2 L3_9 (layer3[9], shift[2], layer2[9], layer2[5]);
-   Mux2 L3_10 (layer3[10], shift[2], layer2[10], layer2[6]);
-   Mux2 L3_11 (layer3[11], shift[2], layer2[11], layer2[7]);
-   Mux2 L3_12 (layer3[12], shift[2], layer2[12], layer2[8]);
-   Mux2 L3_13 (layer3[13], shift[2], layer2[13], layer2[9]);
-   Mux2 L3_14 (layer3[14], shift[2], layer2[14], layer2[10]);
-   Mux2 L3_15 (layer3[15], shift[2], layer2[15], layer2[11]);
+   Mux2 #(n) L3_0 (layer3[0], shiftLanes[3], layer2[0], 1'b0);
+   Mux2 #(n) L3_1 (layer3[1], shiftLanes[3], layer2[1], 1'b0);
+   Mux2 #(n) L3_2 (layer3[2], shiftLanes[3], layer2[2], 1'b0);
+   Mux2 #(n) L3_3 (layer3[3], shiftLanes[3], layer2[3], 1'b0);
+   Mux2 #(n) L3_4 (layer3[4], shiftLanes[3], layer2[4], 1'b0);
+   Mux2 #(n) L3_5 (layer3[5], shiftLanes[3], layer2[5], 1'b0);
+   Mux2 #(n) L3_6 (layer3[6], shiftLanes[3], layer2[6], 1'b0);
+   Mux2 #(n) L3_7 (layer3[7], shiftLanes[3], layer2[7], 1'b0);
+   Mux2 #(n) L3_8 (layer3[8], shiftLanes[3], layer2[8], layer2[0]);
+   Mux2 #(n) L3_9 (layer3[9], shiftLanes[3], layer2[9], layer2[1]);
+   Mux2 #(n) L3_10 (layer3[10], shiftLanes[3], layer2[10], layer2[2]);
+   Mux2 #(n) L3_11 (layer3[11], shiftLanes[3], layer2[11], layer2[3]);
+   Mux2 #(n) L3_12 (layer3[12], shiftLanes[3], layer2[12], layer2[4]);
+   Mux2 #(n) L3_13 (layer3[13], shiftLanes[3], layer2[13], layer2[5]);
+   Mux2 #(n) L3_14 (layer3[14], shiftLanes[3], layer2[14], layer2[6]);
+   Mux2 #(n) L3_15 (layer3[15], shiftLanes[3], layer2[15], layer2[7]);
    // layer 4
-   Mux2 L4_0 (shifted[0], shift[3], layer3[0], 1'b0);
-   Mux2 L4_1 (shifted[1], shift[3], layer3[1], 1'b0);
-   Mux2 L4_2 (shifted[2], shift[3], layer3[2], 1'b0);
-   Mux2 L4_3 (shifted[3], shift[3], layer3[3], 1'b0);
-   Mux2 L4_4 (shifted[4], shift[3], layer3[4], 1'b0);
-   Mux2 L4_5 (shifted[5], shift[3], layer3[5], 1'b0);
-   Mux2 L4_6 (shifted[6], shift[3], layer3[6], 1'b0);
-   Mux2 L4_7 (shifted[7], shift[3], layer3[7], 1'b0);
-   Mux2 L4_8 (shifted[8], shift[3], layer3[8], layer3[0]);
-   Mux2 L4_9 (shifted[9], shift[3], layer3[9], layer3[1]);
-   Mux2 L4_10 (shifted[10], shift[3], layer3[10], layer3[2]);
-   Mux2 L4_11 (shifted[11], shift[3], layer3[11], layer3[3]);
-   Mux2 L4_12 (shifted[12], shift[3], layer3[12], layer3[4]);
-   Mux2 L4_13 (shifted[13], shift[3], layer3[13], layer3[5]);
-   Mux2 L4_14 (shifted[14], shift[3], layer3[14], layer3[6]);
-   Mux2 L4_15 (shifted[15], shift[3], layer3[15], layer3[7]);
+   Mux2 #(n) L4_0 (layer4[0], shiftLanes[4], layer3[0], 1'b0);
+   Mux2 #(n) L4_1 (layer4[1], shiftLanes[4], layer3[1], 1'b0);
+   Mux2 #(n) L4_2 (layer4[2], shiftLanes[4], layer3[2], 1'b0);
+   Mux2 #(n) L4_3 (layer4[3], shiftLanes[4], layer3[3], 1'b0);
+   Mux2 #(n) L4_4 (layer4[4], shiftLanes[4], layer3[4], 1'b0);
+   Mux2 #(n) L4_5 (layer4[5], shiftLanes[4], layer3[5], 1'b0);
+   Mux2 #(n) L4_6 (layer4[6], shiftLanes[4], layer3[6], 1'b0);
+   Mux2 #(n) L4_7 (layer4[7], shiftLanes[4], layer3[7], 1'b0);
+   Mux2 #(n) L4_8 (layer4[8], shiftLanes[4], layer3[8], 1'b0);
+   Mux2 #(n) L4_9 (layer4[9], shiftLanes[4], layer3[9], 1'b0);
+   Mux2 #(n) L4_10 (layer4[10], shiftLanes[4], layer3[10], 1'b0);
+   Mux2 #(n) L4_11 (layer4[11], shiftLanes[4], layer3[11], 1'b0);
+   Mux2 #(n) L4_12 (layer4[12], shiftLanes[4], layer3[12], 1'b0);
+   Mux2 #(n) L4_13 (layer4[13], shiftLanes[4], layer3[13], 1'b0);
+   Mux2 #(n) L4_14 (layer4[14], shiftLanes[4], layer3[14], 1'b0);
+   Mux2 #(n) L4_15 (layer4[15], shiftLanes[4], layer3[15], 1'b0);
+
 endmodule // Shift
 
 module Mult(input a, b,
@@ -215,26 +276,18 @@ module testbench();
    //    #10 $finish;
    // end
    
-   /////////////////////
+   ///////////////////// 
    // test Shift
-   /////////////////////
-   // reg [15:0] Value;
-   // reg [3:0] Shift;
-   // reg [15:0] Result;
+   ///////////////////// 
+   wire [15:0] value = 5;
+   wire [3:0]  shift = 1;
+   wire [15:0] result;
+
+   Shift S(value, shift, result);
+   initial begin
+         $display("SHIFT: %b >> %b = %b",value, shift, result);
+   end
    
-   // wire [15:0] value = 5;
-   // wire [3:0]  shift = 1;
-   // wire [15:0] result = Result;
-
-   // Shift S(value, shift, result);
-   // initial begin
-   //    forever begin
-   //       #10 Result = result;
-   //       $display("SHIFT:%s: %b >> %b = %b",
-   //                    (Result == Value >> Shift)? "PASS" : "FAIL", value, shift, result);
-   //    end
-   // end
-
    // initial begin
    //    #1 Value = 5;
    //    Shift = 1;
@@ -253,6 +306,16 @@ module testbench();
    // initial begin
    //    #10 $display("%4b -> %16b", in, out);
    // end
+   //////////////////////////////////
+   // test ARA (anti-right-arbiter)
+   //////////////////////////////////
+   // wire [15:0] in = 16'b0000000000000010;
+   // wire [15:0] out;
    
+   // ARA A(in, out);
 
+   // initial begin
+   //    #140 $display("%15b -> %15b", in, out);
+   // end
+   
 endmodule // testbench
