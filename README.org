@@ -27,12 +27,12 @@
     * [ ] Circuit Diagram - Jacob
     * [ ] State Machine Diagrams - Jacob
     * *Code and Output*
-    * [ ] Code (Modules, Interfaces) [0%]
+    * [-] Code (Modules, Interfaces) [20%]
       * [ ] Add - Charles
       * [ ] Subtract - Liora
       * [ ] Multiply - Dylan
       * [ ] Divide - Jacob
-      * [ ] Bit shift - Charles
+      * [X] Bit shift - Charles
     * [ ] Output (Show the operations) - All
 
 * Title Page
