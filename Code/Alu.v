@@ -296,8 +296,8 @@ module testbench();
    // reg [15:0]  val1, val2;
    // reg [15:0]  result;
    // reg         overflow;
-   // wire [15:0] a;
-   // wire [15:0] b;
+   // reg [15:0] a;
+   // reg [15:0] b;
    // wire [15:0] sum;
    // wire       carry;
    // Add A(a, b, carry, sum);
@@ -332,8 +332,8 @@ module testbench();
    ///////////////////// 
    // test ShiftRight
    ///////////////////// 
-   // wire [15:0] value = 16384;
-   // wire [3:0]  shift = 8;
+   // reg [15:0] value = 16384;
+   // reg [3:0]  shift = 8;
    // wire [15:0] result;
 
    // ShiftRight S(value, shift, result);
@@ -342,10 +342,10 @@ module testbench();
    //    #10 $display("SHIFT: %b >> %b = %b",value, shift, result);
    // end   
    // initial begin
-   //    #1 Value = 5;
-   //    Shift = 1;
-   //    #10 Value = 5;
-   //    Shift = -1;
+   //    #1 value = 5;
+   //    shift = 1;
+   //    #10 value = 5;
+   //    shift = -1;
    //    #10 $finish;
    // end
    /////////////////////
@@ -356,7 +356,7 @@ module testbench();
 
    // Decoder4 D4(in, out);
    
-   // INITIAL begin
+   // initial begin
    //    #10 $display("%4b -> %16b", in, out);
    // end
    //////////////////////////////////
