@@ -316,37 +316,15 @@ module Mult(a, b, upper, lower);
     input [15:0] a,b;
     output [15:0] upper, lower;
 
-reg [15:0] upper, lower;
-wire [15:0] a,b;
+    reg [15:0] upper, lower;
+    wire [15:0] a,b;
 
-reg b0;
-reg [15:0] c;
+    reg b0;
+    reg [15:0] c;
 
-integer i;
+    integer i;
 
-always@*
-begin
-upper = 0;
-c[15:0] = b[15:0];
-    for(i =0; i < 16; i = i +1)
-    begin
-    b0 = c[0];
-    if(b0 ==1)
-        begin
-    lower[15:0] = lower[15:0] + a[15:0];
-        c = c >> 1;
-        c[15] = lower >> 1;
-        end
-    else if(b0 == 0)
-        begin
-        c = c >> 1;
-        c[15] = lower[0];
-        upper = lower >> 1;
-        end
-    upper = c[15:0];
-    end
-
-end
+    
 
 endmodule // Mult
 
@@ -451,30 +429,30 @@ module testbench();
     // test Multiply
     /////////////////////
 
-    reg [15:0]  val1, val2;
-    reg [15:0]  result;
-    reg         overflow;
-    reg [15:0] a;
-    reg [15:0] b;
-    wire [15:0] quotient;
-    wire       carry;
-    Mult S(a, b, upper, lower);
-    initial begin
-    forever begin
-        #10 val1 = a;
-        val2 = b;
-        result = upper;
-        overflow = lower;
-        $display("MULT:%s: %d - %d = %d%d",
-                (result == val1 - val2 + overflow * 16)? "PASS":"FAIL",val1, val2, overflow, result);
-    end
+   //reg [15:0]  val1, val2;
+   //reg [15:0]  result;
+   //reg         overflow;
+   //reg [15:0] a;
+   //reg [15:0] b;
+   //wire [15:0] quotient;
+   //wire       carry;
+   //Mult S(a, b, upper, lower);
+   //initial begin
+   //forever begin
+   //    #10 val1 = a;
+   //    val2 = b;
+   //    result = upper;
+   //    overflow = lower;
+   //    $display("MULT:%s: %d - %d = %d%d",
+   //            (result == val1 - val2 + overflow * 16)? "PASS":"FAIL",val1, val2, overflow, result);
+   //end
 
-    end
-    initial begin
-    assign a = 16'b0000000000000100;
-    assign b = 16'b0000000000000010;
-    #10 $finish;
-    end
+   //end
+   //initial begin
+   //assign a = 16'b0000000000000100;
+   //assign b = 16'b0000000000000010;
+   //#10 $finish;
+   //end
 
 
    /////////////////////
