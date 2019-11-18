@@ -108,9 +108,46 @@ module Add(a, b, cout, sum);
    AddFull A15(a[15], b[15], carry[14], cout, sum[15]);
 endmodule // Add
 
-module Sub(input a, b, 
-           output difference);
+module Sub(a, b, cout, sum);
+   input [15:0] a, b;
+   output [15:0] sum;
+   output	 cout;
+   wire [14:0]   carry;
+   wire [15:0] 	 w;
 
+   xor G0 (w[0], b[0], 1'b1);
+   xor G1 (w[1], b[1], 1'b1);
+   xor G2 (w[2], b[2], 1'b1);
+   xor G3 (w[3], b[3], 1'b1);
+   xor G4 (w[4], b[4], 1'b1);
+   xor G5 (w[5], b[5], 1'b1);
+   xor G6 (w[6], b[6], 1'b1);
+   xor G7 (w[7], b[7], 1'b1);
+   xor G8 (w[8], b[8], 1'b1);
+   xor G9 (w[9], b[9], 1'b1);
+   xor G10 (w[10], b[10], 1'b1);
+   xor G11 (w[11], b[11], 1'b1);
+   xor G12 (w[12], b[12], 1'b1);
+   xor G13 (w[13], b[13], 1'b1);
+   xor G14 (w[14], b[14], 1'b1);
+   xor G15 (w[15], b[15], 1'b1);
+
+   AddFull A0(a[0], w[0], 1'b1, carry[0], sum[0]);
+   AddFull A1(a[1], w[1], carry[0], carry[1], sum[1]);
+   AddFull A2(a[2], w[2], carry[1], carry[2], sum[2]);
+   AddFull A3(a[3], w[3], carry[2], carry[3], sum[3]);
+   AddFull A4(a[4], w[4], carry[3], carry[4], sum[4]);
+   AddFull A5(a[5], w[5], carry[4], carry[5], sum[5]);
+   AddFull A6(a[6], w[6], carry[5], carry[6], sum[6]);
+   AddFull A7(a[7], w[7], carry[6], carry[7], sum[7]);
+   AddFull A8(a[8], w[8], carry[7], carry[8], sum[8]);
+   AddFull A9(a[9], w[9], carry[8], carry[9], sum[9]);
+   AddFull A10(a[10], w[10], carry[9], carry[10], sum[10]);
+   AddFull A11(a[11], w[11], carry[10], carry[11], sum[11]);
+   AddFull A12(a[12], w[12], carry[11], carry[12], sum[12]);
+   AddFull A13(a[13], w[13], carry[12], carry[13], sum[13]);
+   AddFull A14(a[14], w[14], carry[13], carry[14], sum[14]);
+   AddFull A15(a[15], w[15], carry[14], cout, sum[15]);
 endmodule // Sub
 
 module ShiftLeft(num, shift, shifted);
@@ -314,6 +351,33 @@ module testbench();
    // initial begin
    //    assign a = 16'b1111111111111111;
    //    assign b = 16'b1111111111111111;
+   //    #10 $finish;
+   // end
+
+   ////////////////////
+   // test Sub
+   ////////////////////
+   // reg [15:0]  val1, val2;
+   // reg [15:0]  result;
+   // reg         overflow;
+   // reg [15:0] a;
+   // reg [15:0] b;
+   // wire [15:0] sum;
+   // wire       carry;
+   // Sub S(a, b, carry, sum);
+   // initial begin
+   //   forever begin
+   //       #10 val1 = a;
+   //       val2 = b;
+   //       result = sum;
+   //       overflow = carry;
+   //       $display("SUB:%s: %d - %d = %d%d",
+   //                (result == val1 - val2 + overflow * 16)? "PASS":"FAIL",val1, val2, overflow, result);
+   //    end
+   // end
+   // initial begin
+   //  assign a = 16'b0000000000000100;
+   //  assign b = 16'b0000000000000010;
    //    #10 $finish;
    // end
    
