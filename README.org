@@ -29,7 +29,7 @@
     * *Code and Output*
     * [-] Code (Modules, Interfaces) [20%]
       * [ ] Add - Charles
-      * [ ] Subtract - Liora
+      * [X] Subtract - Liora
       * [ ] Multiply - Dylan
       * [ ] Divide - Jacob
       * [X] Bit shift - Charles
