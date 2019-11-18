@@ -316,15 +316,10 @@ module Mult(a, b, upper, lower);
     input [15:0] a,b;
     output [15:0] upper, lower;
 
-    reg [15:0] upper, lower;
-    wire [15:0] a,b;
 
-    reg b0;
-    reg [15:0] c;
 
-    integer i;
 
-    
+
 
 endmodule // Mult
 
@@ -434,18 +429,7 @@ module testbench();
    //reg         overflow;
    //reg [15:0] a;
    //reg [15:0] b;
-   //wire [15:0] quotient;
-   //wire       carry;
-   //Mult S(a, b, upper, lower);
-   //initial begin
-   //forever begin
-   //    #10 val1 = a;
-   //    val2 = b;
-   //    result = upper;
-   //    overflow = lower;
-   //    $display("MULT:%s: %d - %d = %d%d",
-   //            (result == val1 - val2 + overflow * 16)? "PASS":"FAIL",val1, val2, overflow, result);
-   //end
+   
 
    //end
    //initial begin
