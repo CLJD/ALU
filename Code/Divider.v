@@ -1,4 +1,4 @@
-module divide(ready,quotient,remainder,dividend,divider,sign,clk);
+module divide(ready, quotient, remainder, dividend, divider, sign, clk);
 
    input         clk;
    input         sign;
@@ -90,7 +90,6 @@ initial begin
     $display("Dividend: %d, Divisor: %d, Quotient: %d, Remainder: %d",dividend, divisor, quotient, remainder);
     $finish
     end
-
 end
 
 

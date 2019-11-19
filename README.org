@@ -33,7 +33,6 @@
     * [ ] Divide - Jacob
     * [X] Bit shift - Charles
     * [ ] Output (Show the operations) - All
-
 * Title Page
 * Parts List
 * Input List

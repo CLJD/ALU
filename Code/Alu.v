@@ -6,6 +6,18 @@ module Mux2 (out, signal, in1, in2);
    output [n-1:0] out;
    assign out = (signal? in1 : in2);
 endmodule // Mux2
+
+module Mux4(a3, a2, a1, a0, s, b);
+   parameter k = 5;
+   input [k-1:0] a3, a2, a1, a0; // inputs
+   input [3:0]   s;              // one-hot select
+   output reg[k-1:0] b;
+   always @(a3, a2, a1, a0, s, b)
+     b = (s[0]? a0 :
+          (s[1]? a1 :
+           (s[2]? a2 : a3)));
+endmodule // Mux4
+
 // Decoder4
 // |   in |              out |
 // |------+------------------|
@@ -467,9 +479,8 @@ module ALU(opcode, operand1, operand2,
    // | 1011 | divide    |
    // | 1100 | shift <-  |
    // | 1101 | shift ->  |
-   wire [13:0]   results;
-   wire [1:0]    cout;
-   wire [1:0]    highs;
+   wire [15:0]   results;
+   wire [3:0]    highs;
    
    and(results[1], operand1, operand2);
    nand(result[2], operand1, operand2);
@@ -478,14 +489,20 @@ module ALU(opcode, operand1, operand2,
    xor(result[5], operand1, operand2);
    xnor(result[6], operand1, operand2);
    not(result[7], operand1);
-   Add(operand1, operand2, 1'b0, cout[0], results[8]);
-   Sub(operand1, operand2, 1'b0, cout[1], results[9]);
-   Mult(operand1, operand2, highs[0], results[10]);
+   Add(operand1, operand2, 1'b0, highs[0], results[8]);
+   Sub(operand1, operand2, 1'b0, highs[1], results[9]);
+   Mult(operand1, operand2, highs[2], results[10]);
    Div;                         // TODO: jacob please do this
+   ShiftLeft(operand1, operand2, results[12]);
+   ShiftRight(operand1, operand2, results[13]);
    
 
-     
+   wire [15:0]   arithmetic, logical, arithmeticHigh;
    
+
+   
+   Mux2 fin1(result, opcode[3], arithmetic, logical);
+   Mux2 fin2(high, opcode[3], arithmeticHigh, 0);
    // if statusOutu is non zero then there is an error
    // | code | error          |
    // |------+----------------|
@@ -609,10 +626,6 @@ module testbench();
    //   #10
    //   $finish;
    // end
-
-   
-
-
 
    /////////////////////
    // test Decoder4
