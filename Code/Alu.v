@@ -85,12 +85,13 @@ module AddFull (input a, b, c_in,
    or (c_out, w1, w3);
 endmodule // AddFull
 
-module Add(a, b, cout, sum);
+module Add(a, b, cin, cout, sum);
    input [15:0] a, b;
    output [15:0] sum;
+   input cin;
    output        cout;
    wire [14:0]   carry;
-   AddFull A0(a[0], b[0], 1'b0, carry[0], sum[0]);
+   AddFull A0(a[0], b[0], cin, carry[0], sum[0]);
    AddFull A1(a[1], b[1], carry[0], carry[1], sum[1]);
    AddFull A2(a[2], b[2], carry[1], carry[2], sum[2]);
    AddFull A3(a[3], b[3], carry[2], carry[3], sum[3]);
@@ -107,6 +108,132 @@ module Add(a, b, cout, sum);
    AddFull A14(a[14], b[14], carry[13], carry[14], sum[14]);
    AddFull A15(a[15], b[15], carry[14], cout, sum[15]);
 endmodule // Add
+
+module Partial(a, b, p);
+input a;
+input [15:0] b;
+output [15:0] p;
+assign p[0] = {a & b[0]};
+assign p[1] = {a & b[1]};
+assign p[2] = {a & b[2]};
+assign p[3] = {a & b[3]};
+assign p[4] = {a & b[4]};
+assign p[5] = {a & b[5]};
+assign p[6] = {a & b[6]};
+assign p[7] = {a & b[7]};
+assign p[8] = {a & b[8]};
+assign p[9] = {a & b[9]};
+assign p[10] = {a & b[10]};
+assign p[11] = {a & b[11]};
+assign p[12] = {a & b[12]};
+assign p[13] = {a & b[13]};
+assign p[14] = {a & b[14]};
+assign p[15] = {a & b[15]};
+
+endmodule
+
+module Mult(a, b, upper, lower);
+input [15:0] a,b;
+output [15:0] upper, lower;
+wire [15:0] p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15;
+Partial P0(a[0], b, p0);
+Partial P1(a[1], b, p1);
+Partial P2(a[2], b, p2);
+Partial P3(a[3], b, p3);
+Partial P4(a[4], b, p4);
+Partial P5(a[5], b, p5);
+Partial P6(a[6], b, p6);
+Partial P7(a[7], b, p7);
+Partial P8(a[8], b, p8);
+Partial P9(a[9], b, p9);
+Partial P10(a[10], b, p10);
+Partial P11(a[11], b, p11);
+Partial P12(a[12], b, p12);
+Partial P13(a[13], b, p13);
+Partial P14(a[14], b, p14);
+Partial P15(a[15], b, p15);
+
+wire [15:0] pl0, pl1, pl2, pl3, pl4, pl5, pl6, pl7, pl8, pl9, pl10, pl11, pl12, pl13, pl14, pl15;
+wire [15:0] pr0, pr1, pr2, pr3, pr4, pr5, pr6, pr7, pr8, pr9, pr10, pr11, pr12, pr13, pr14, pr15;
+
+// values shifted left are for the lower bits
+ShiftLeft L0 (p0, 4'b0000, pl0);
+ShiftLeft L1 (p1, 4'b0001, pl1);
+ShiftLeft L2 (p2, 4'b0010, pl2);
+ShiftLeft L3 (p3, 4'b0011, pl3);
+ShiftLeft L4 (p4, 4'b0100, pl4);
+ShiftLeft L5 (p5, 4'b0101, pl5);
+ShiftLeft L6 (p6, 4'b0110, pl6);
+ShiftLeft L7 (p7, 4'b0111, pl7);
+ShiftLeft L8 (p8, 4'b1000, pl8);
+ShiftLeft L9 (p9, 4'b1001, pl9);
+ShiftLeft L10 (p10, 4'b1010, pl10);
+ShiftLeft L11 (p11, 4'b1011, pl11);
+ShiftLeft L12 (p12, 4'b1100, pl12);
+ShiftLeft L13 (p13, 4'b1101, pl13);
+ShiftLeft L14 (p14, 4'b1110, pl14);
+ShiftLeft L15 (p15, 4'b1111, pl15);
+
+// values shifted right are for the upper bits
+ShiftRight R1 (p1, 4'b1111, pr1);
+ShiftRight R2 (p2, 4'b1110, pr2);
+ShiftRight R3 (p3, 4'b1101, pr3);
+ShiftRight R4 (p4, 4'b1100, pr4);
+ShiftRight R5 (p5, 4'b1011, pr5);
+ShiftRight R6 (p6, 4'b1010, pr6);
+ShiftRight R7 (p7, 4'b1001, pr7);
+ShiftRight R8 (p8, 4'b1000, pr8);
+ShiftRight R9 (p9, 4'b0111, pr9);
+ShiftRight R10 (p10, 4'b0110, pr10);
+ShiftRight R11 (p11, 4'b0101, pr11);
+ShiftRight R12 (p12, 4'b0100, pr12);
+ShiftRight R13 (p13, 4'b0011, pr13);
+ShiftRight R14 (p14, 4'b0010, pr14);
+ShiftRight R15 (p15, 4'b0001, pr15);
+
+
+
+wire [15:0] subl0, subl1, subl2, subl3, subl4, subl5, subl6, subl7, subl8, subl9, subl10, subl11, subl12, subl13, subl14;
+// carries from the lower bits could be included in the upper bits
+wire cl0, cl1, cl2, cl3, cl4, cl5, cl6, cl7, cl8, cl9, cl10, cl11, cl12, cl13, cl14, cl15;
+wire [15:0] subr0, subr1, subr2, subr3, subr4, subr5, subr6, subr7, subr8, subr9, subr10, subr11, subr12, subr13;
+// there are no possible carries from the upper bits
+wire cr0, cr1, cr2, cr3, cr4, cr5, cr6, cr7, cr8, cr9, cr10, cr11, cr12, cr13, cr14;
+
+Add AL0 (pl0, pl1, 1'b0, cl0, subl0);
+Add AL1 (pl2, pl3, 1'b0, cl1, subl1);
+Add AL2 (pl4, pl5, 1'b0, cl2, subl2);
+Add AL3 (pl6, pl7, 1'b0, cl3, subl3);
+Add AL4 (pl8, pl9, 1'b0, cl4, subl4);
+Add AL5 (pl10, pl11, 1'b0, cl5, subl5);
+Add AL6 (pl12, pl13, 1'b0, cl6, subl6);
+Add AL7 (pl14, pl15, 1'b0, cl7, subl7);
+Add AL8 (subl0, subl1, 1'b0, cl8, subl8);
+Add AL9 (subl2, subl3, 1'b0, cl9, subl9);
+Add AL10 (subl4, subl5, 1'b0, cl10, subl10);
+Add AL11 (subl6, subl7, 1'b0, cl11, subl11);
+Add AL12 (subl8, subl9, 1'b0, cl12, subl12);
+Add AL13 (subl10, subl11, 1'b0, cl13, subl13);
+Add AL14 (subl12, subl13, 1'b0, cl14, lower);
+
+Add AR0 (16'b0, pr1, cl0, cr0, subr0);
+Add AR1 (pr2, pr3, cl1, cr1, subr1);
+Add AR2 (pr4, pr5, cl2, cr2, subr2);
+Add AR3 (pr6, pr7, cl3, cr3, subr3);
+Add AR4 (pr8, pr9, cl4, cr4, subr4);
+Add AR5 (pr10, pr11, cl5, cr5, subr5);
+Add AR6 (pr12, pr13, cl6, cr6, subr6);
+Add AR7 (pr14, pr15, cl7, cr7, subr7);
+Add AR8 (subr0, subr1, cl8, cr8, subr8);
+Add AR9 (subr2, subr3, cl9, cr9, subr9);
+Add AR10 (subr4, subr5, cl10, cr10, subr10);
+Add AR11 (subr6, subr7, cl11, cr11, subr11);
+Add AR12 (subr8, subr9, cl12, cr12, subr12);
+Add AR13 (subr10, subr11, cl13, cr13, subr13);
+Add AR14 (subr12, subr13, cl14, cr14, upper);
+
+
+endmodule // Mult
 
 module Sub(a, b, cout, sum);
    input [15:0] a, b;
@@ -310,18 +437,7 @@ module ShiftRight(num, shift, shifted);
    Mux2 #(n) L3_14 (shifted[14], shift[3], 1'b0,       layer2[14]);
    Mux2 #(n) L3_15 (shifted[15], shift[3], 1'b0,       layer2[15]);
 endmodule // ShiftRight
-   
-module Mult(a, b, upper, lower);
 
-    input [15:0] a,b;
-    output [15:0] upper, lower;
-
-
-
-
-
-
-endmodule // Mult
 
 module Div(input dividen, divisor,
            output quotient, remainder);
@@ -363,29 +479,29 @@ module testbench();
    ////////////////////
    // test Add
    ////////////////////
-   // reg [15:0]  val1, val2;
-   // reg [15:0]  result;
-   // reg         overflow;
-   // reg [15:0] a;
-   // reg [15:0] b;
-   // wire [15:0] sum;
-   // wire       carry;
-   // Add A(a, b, carry, sum);
-   // initial begin
-   //    forever begin
-   //       #10 val1 = a;
-   //       val2 = b;
-   //       result = sum;
-   //       overflow = carry;
-   //       $display("ADD:%s: %d + %d = %d%d",
-   //                (result == val1 + val2 + overflow * 16)? "PASS":"FAIL",val1, val2, overflow, result);
-   //    end
-   // end
-   // initial begin
-   //    assign a = 16'b1111111111111111;
-   //    assign b = 16'b1111111111111111;
-   //    #10 $finish;
-   // end
+    reg [15:0]  val1, val2;
+    reg [15:0]  result;
+    reg         overflow;
+    reg [15:0] a;
+    reg [15:0] b;
+    wire [15:0] sum;
+    wire       carry;
+    Add A(a, b, 1'b0, carry, sum);
+    initial begin
+        forever begin
+            #10 val1 = a;
+            val2 = b;
+            result = sum;
+            overflow = carry;
+            $display("ADD:%s: %d + %d = %d%d",
+                    (result == val1 + val2 + overflow * 16)? "PASS":"FAIL",val1, val2, overflow, result);
+        end
+    end
+    initial begin
+        assign a = 16'b1111111111111111;
+        assign b = 16'b1111111111111111;
+        #10 $finish;
+    end
 
    ////////////////////
    // test Sub
@@ -450,19 +566,31 @@ module testbench();
     // test Multiply
     /////////////////////
 
-   //reg [15:0]  val1, val2;
-   //reg [15:0]  result;
-   //reg         overflow;
-   //reg [15:0] a;
-   //reg [15:0] b;
+   // reg [15:0] a;
+   // reg [15:0] b;
+   // wire [15:0] up;
+   // wire [15:0] low;
+   // reg [15:0] up_res;
+   // reg [15:0] low_res;
+   // reg cOut;
+   // Mult M(a, b, up, low);
+   // initial begin
+   //   forever begin
+   //       #10
+   //       up_res = up;
+   //         low_res = low;
+   //     $display("Multiply %b %b %b %b", a, b, up_res, low_res);
+   //     end
+   // end
+   // initial begin
+   //   assign b = 16'b1111110111101000;
+   //   assign a = 16'b1111110111101000;
+   //   #10
+   //   $finish;
+   // end
+
    
 
-   //end
-   //initial begin
-   //assign a = 16'b0000000000000100;
-   //assign b = 16'b0000000000000010;
-   //#10 $finish;
-   //end
 
 
    /////////////////////
