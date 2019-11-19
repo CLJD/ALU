@@ -1,4 +1,3 @@
-// iverilog
 module Mux2 (out, signal, in1, in2);
    parameter n = 4;
    input signal;
@@ -235,9 +234,10 @@ Add AR14 (subr12, subr13, cl14, cr14, upper);
 
 endmodule // Mult
 
-module Sub(a, b, cout, sum);
+module Sub(a, b, cin, cout, sum);
    input [15:0] a, b;
    output [15:0] sum;
+   input 	 cin;
    output	 cout;
    wire [14:0]   carry;
    wire [15:0] 	 w;
@@ -259,7 +259,7 @@ module Sub(a, b, cout, sum);
    xor G14 (w[14], b[14], 1'b1);
    xor G15 (w[15], b[15], 1'b1);
 
-   AddFull A0(a[0], w[0], 1'b1, carry[0], sum[0]);
+   AddFull A0(a[0], w[0], cin , carry[0], sum[0]);
    AddFull A1(a[1], w[1], carry[0], carry[1], sum[1]);
    AddFull A2(a[2], w[2], carry[1], carry[2], sum[2]);
    AddFull A3(a[3], w[3], carry[2], carry[3], sum[3]);
@@ -479,29 +479,29 @@ module testbench();
    ////////////////////
    // test Add
    ////////////////////
-    reg [15:0]  val1, val2;
-    reg [15:0]  result;
-    reg         overflow;
-    reg [15:0] a;
-    reg [15:0] b;
-    wire [15:0] sum;
-    wire       carry;
-    Add A(a, b, 1'b0, carry, sum);
-    initial begin
-        forever begin
-            #10 val1 = a;
-            val2 = b;
-            result = sum;
-            overflow = carry;
-            $display("ADD:%s: %d + %d = %d%d",
-                    (result == val1 + val2 + overflow * 16)? "PASS":"FAIL",val1, val2, overflow, result);
-        end
-    end
-    initial begin
-        assign a = 16'b1111111111111111;
-        assign b = 16'b1111111111111111;
-        #10 $finish;
-    end
+   // reg [15:0]  val1, val2;
+   // reg [15:0]  result;
+   // reg         overflow;
+   // reg [15:0] a;
+   // reg [15:0] b;
+   // wire [15:0] sum;
+   // wire       carry;
+   // Add A(a, b, 1'b0, carry, sum);
+   // initial begin
+   //     forever begin
+   //         #10 val1 = a;
+   //         val2 = b;
+   //         result = sum;
+   //         overflow = carry;
+   //         $display("ADD:%s: %d + %d = %d%d",
+   //                 (result == val1 + val2 + overflow * 16)? "PASS":"FAIL",val1, val2, overflow, result);
+   //     end
+   // end
+   // initial begin
+   //    assign a = 16'b1111111111111111;
+   //     assign b = 16'b1111111111111111;
+   //    #10 $finish;
+   // end
 
    ////////////////////
    // test Sub
@@ -513,7 +513,7 @@ module testbench();
    // reg [15:0] b;
    // wire [15:0] sum;
    // wire       carry;
-   // Sub S(a, b, carry, sum);
+   // Sub S(a, b, 1'b1, carry, sum);
    // initial begin
    //   forever begin
    //       #10 val1 = a;
