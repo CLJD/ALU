@@ -542,7 +542,7 @@ module testbench();
    //       result = sum;
    //       overflow = carry;
    //       $display("SUB:%s: %d - %d = %d%d",
-   //                (result == val1 - val2 + overflow * 16)? "PASS":"FAIL",val1, val2, overflow, result);
+   //                (result == val1 - val2 + overflow * 16)? "FAIL":"PASS",val1, val2, overflow, result);
    //    end
    // end
    // initial begin
