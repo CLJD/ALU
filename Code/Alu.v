@@ -328,9 +328,35 @@ module Div(input dividen, divisor,
    
 endmodule // Div
 
-module ALU(input opcode, operand1, operand2, statusIn,
+module ALU(input opcode, operand1, operand2,
            output result, statusOut);
-   // state machine goes here
+   // opcodes:
+   // | code | operation |
+   // |------+-----------|
+   // | 0000 | no-op     |
+   // | 0001 | and       |
+   // | 0010 | nand      |
+   // | 0011 | or        |
+   // | 0100 | nor       |
+   // | 0101 | xor       |
+   // | 0110 | xnor      |
+   // | 0111 | not       |
+   // | 1000 | add       |
+   // | 1001 | subtract  |
+   // | 1010 | multiply  |
+   // | 1011 | divide    |
+   // | 1100 | shift <-  |
+   // | 1101 | shift ->  |
+   
+   // if status out is 1 then an error has occoured
+   // error code will be stored in result
+   // | code | error          |
+   // |------+----------------|
+   // |   00 | overflow       |
+   // |   01 | carry-over     |
+   // |   10 | divide by zero |
+   // |   11 | out of memory  |
+     // state machine goes here
 endmodule // ALU
 
 module testbench();
