@@ -254,22 +254,22 @@ module Sub(a, b, cin, cout, sum);
    wire [14:0]   carry;
    wire [15:0]   w;
 
-   xor G0 (w[0], b[0], 1'b1);
-   xor G1 (w[1], b[1], 1'b1);
-   xor G2 (w[2], b[2], 1'b1);
-   xor G3 (w[3], b[3], 1'b1);
-   xor G4 (w[4], b[4], 1'b1);
-   xor G5 (w[5], b[5], 1'b1);
-   xor G6 (w[6], b[6], 1'b1);
-   xor G7 (w[7], b[7], 1'b1);
-   xor G8 (w[8], b[8], 1'b1);
-   xor G9 (w[9], b[9], 1'b1);
-   xor G10 (w[10], b[10], 1'b1);
-   xor G11 (w[11], b[11], 1'b1);
-   xor G12 (w[12], b[12], 1'b1);
-   xor G13 (w[13], b[13], 1'b1);
-   xor G14 (w[14], b[14], 1'b1);
-   xor G15 (w[15], b[15], 1'b1);
+   xor G0 (w[0], b[0], cin);
+   xor G1 (w[1], b[1], cin);
+   xor G2 (w[2], b[2], cin);
+   xor G3 (w[3], b[3], cin);
+   xor G4 (w[4], b[4], cin);
+   xor G5 (w[5], b[5], cin);
+   xor G6 (w[6], b[6], cin);
+   xor G7 (w[7], b[7], cin);
+   xor G8 (w[8], b[8], cin);
+   xor G9 (w[9], b[9], cin);
+   xor G10 (w[10], b[10], cin);
+   xor G11 (w[11], b[11], cin);
+   xor G12 (w[12], b[12], cin);
+   xor G13 (w[13], b[13], cin);
+   xor G14 (w[14], b[14], cin);
+   xor G15 (w[15], b[15], cin);
 
    AddFull A0(a[0], w[0], cin , carry[0], sum[0]);
    AddFull A1(a[1], w[1], carry[0], carry[1], sum[1]);
@@ -490,7 +490,7 @@ module ALU(opcode, operand1, operand2,
    xnor(result[6], operand1, operand2);
    not(result[7], operand1);
    Add(operand1, operand2, 1'b0, highs[0], results[8]);
-   Sub(operand1, operand2, 1'b0, highs[1], results[9]);
+   Sub(operand1, operand2, 1'b1, highs[1], results[9]);
    Mult(operand1, operand2, highs[2], results[10]);
    Div;                         // TODO: jacob please do this
    ShiftLeft(operand1, operand2, results[12]);
