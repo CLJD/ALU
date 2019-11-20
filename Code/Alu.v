@@ -246,13 +246,15 @@ module Mult(a, b, upper, lower);
 
 endmodule // Mult
 
-module Sub(a, b, cin, cout, sum);
+module Sub(a, b, cin, ovf, sum);
    input [15:0] a, b;
    output [15:0] sum;
    input         cin;
    output        cout;
    wire [14:0]   carry;
+   output           ovf;
    wire [15:0]   w;
+   assign ovf = cin ^ cout; //xor carry in and carry out
 
    xor G0 (w[0], b[0], cin);
    xor G1 (w[1], b[1], cin);
@@ -554,7 +556,7 @@ module testbench();
    // Sub S(a, b, 1'b1, carry, sum);
    // initial begin
    //   forever begin
-   //       #10 val1 = a;
+   //      #10 val1 = a;
    //       val2 = b;
    //       result = sum;
    //       overflow = carry;
@@ -563,8 +565,8 @@ module testbench();
    //    end
    // end
    // initial begin
-   //  assign a = 16'b0000000000000100;
-   //  assign b = 16'b0000000000000010;
+   //  assign a = 16'b1000001000000000;
+   //  assign b = 16'b1000000000000000;
    //    #10 $finish;
    // end
    
