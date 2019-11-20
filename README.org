@@ -29,7 +29,7 @@
     * *Code and Output*
     * [X] Add - Charles
     * [X] Subtract - Liora
-    * [ ] Multiply - Dylan
+    * [X] Multiply - Dylan
     * [ ] Divide - Jacob
     * [X] Bit shift - Charles
     * [ ] Output (Show the operations) - All
