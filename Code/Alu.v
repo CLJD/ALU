@@ -489,12 +489,12 @@ module ALU(opcode, operand1, operand2,
    xor(result[5], operand1, operand2);
    xnor(result[6], operand1, operand2);
    not(result[7], operand1);
-   Add(operand1, operand2, 1'b0, highs[0], results[8]);
-   Sub(operand1, operand2, 1'b1, highs[1], results[9]);
-   Mult(operand1, operand2, highs[2], results[10]);
-   Div;                         // TODO: jacob please do this
-   ShiftLeft(operand1, operand2, results[12]);
-   ShiftRight(operand1, operand2, results[13]);
+   Add a(operand1, operand2, 1'b0, highs[0], results[8]);
+   Sub s(operand1, operand2, 1'b1, highs[1], results[9]);
+   Mult m(operand1, operand2, highs[2], results[10]);
+   //Div;                         // TODO: jacob please do this
+   ShiftLeft sl(operand1, operand2, results[12]);
+   ShiftRight sr(operand1, operand2, results[13]);
    
 
    wire [15:0]   arithmetic, logical, arithmeticHigh;
@@ -558,8 +558,8 @@ module testbench();
    //       val2 = b;
    //       result = sum;
    //       overflow = carry;
-   //       $display("SUB:%s: %d - %d = %d%d",
-   //                (result == val1 - val2 + overflow * 16)? "FAIL":"PASS",val1, val2, overflow, result);
+   //       $display("SUB:%s: %d - %d =%d ovf:%d",
+   //                (result == val1 - val2)? "PASS":"FAIL",val1, val2, result, overflow);
    //    end
    // end
    // initial begin
