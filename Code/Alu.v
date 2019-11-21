@@ -24,7 +24,7 @@ module Mux8(a7, a6, a5, a4, a3, a2, a1, a0, s, b);
    input [7:0]   s;
    output [k-1:0] b;
    always @(a7, a6, a5, a4, a3, a2, a1, a0, s, b)
-     b = (s[0]? a0 :n
+     b = (s[0]? a0 : 
           (s[1]? a1 :
            (s[2]? a2 :
             (s[3]? a3 :
@@ -72,7 +72,18 @@ module Decoder4(n, out);
    assign out[14] = { n[3] &  n[2] &  n[1] & ~n[0]};
    assign out[15] = { n[3] &  n[2] &  n[1] &  n[0]};
 endmodule // Decoder4
-
+module Decoder3(n, out);
+   input [2:0] in;
+   output [7:0] out;
+   assign out[0] =  {~n[2] & ~n[1] & ~n[0]};
+   assign out[1] =  {~n[2] & ~n[1] &  n[0]};
+   assign out[2] =  {~n[2] &  n[1] & ~n[0]};
+   assign out[3] =  {~n[2] &  n[1] &  n[0]};
+   assign out[4] =  { n[2] & ~n[1] & ~n[0]};
+   assign out[5] =  { n[2] & ~n[1] &  n[0]};
+   assign out[6] =  { n[2] &  n[1] & ~n[0]};
+   assign out[7] =  { n[2] &  n[1] &  n[0]};
+endmodule // Decoder3
 // anti-right-arbiter
 // this makes all bits 1 to the right of the first 1 from the left
 module ARA(in, out);
@@ -512,13 +523,42 @@ module ALU(opcode, operand1, operand2,
    //Div;                         // TODO: jacob please do this
    ShiftLeft sl(operand1, operand2, results[12]);
    ShiftRight sr(operand1, operand2, results[13]);
-   
 
    wire [15:0]   arithmetic, logical, arithmeticHigh;
+   wire [7:0] op1hot;
    
+   Decoder3 op({opcode[2], opcode[1], opcode[0]}, op1hot);
+   Mux8 logicalDecision(result[0],
+                        result[1],
+                        result[2],
+                        result[3],
+                        result[4],
+                        result[5],
+                        result[6],
+                        result[7],
+                        op1hot, logical);
+   Mux8 ArithmeticDecision(result[8],
+                           result[9],
+                           result[10],
+                           result[11],
+                           result[12],
+                           result[13],
+                           0,
+                           0,
+                           op1hot, arithmetic);
+   Mux8 ArithmeticHighDecision(highs[0],
+                               highs[1],
+                               highs[2],
+                               highs[3],
+                               0,
+                               0,
+                               0,
+                               0,
+                               op1hot, arithmeticHigh);
    
    Mux2 fin1(result, opcode[3], arithmetic, logical);
    Mux2 fin2(high, opcode[3], arithmeticHigh, 0);
+   
    // if statusOutu is non zero then there is an error
    // | code | error          |
    // |------+----------------|
