@@ -261,30 +261,32 @@ module Mult(a, b, upper, lower);
 
 endmodule // Mult
 
-module Sub(a, b, cin, cout, sum);
+module Sub(a, b, cin, ovf, sum);
    input [15:0] a, b;
    output [15:0] sum;
    input         cin;
    output        cout;
    wire [14:0]   carry;
+   output           ovf;
    wire [15:0]   w;
+   assign ovf = cin ^ cout; //xor carry in and carry out
 
-   xor G0 (w[0], b[0], 1'b1);
-   xor G1 (w[1], b[1], 1'b1);
-   xor G2 (w[2], b[2], 1'b1);
-   xor G3 (w[3], b[3], 1'b1);
-   xor G4 (w[4], b[4], 1'b1);
-   xor G5 (w[5], b[5], 1'b1);
-   xor G6 (w[6], b[6], 1'b1);
-   xor G7 (w[7], b[7], 1'b1);
-   xor G8 (w[8], b[8], 1'b1);
-   xor G9 (w[9], b[9], 1'b1);
-   xor G10 (w[10], b[10], 1'b1);
-   xor G11 (w[11], b[11], 1'b1);
-   xor G12 (w[12], b[12], 1'b1);
-   xor G13 (w[13], b[13], 1'b1);
-   xor G14 (w[14], b[14], 1'b1);
-   xor G15 (w[15], b[15], 1'b1);
+   xor G0 (w[0], b[0], cin);
+   xor G1 (w[1], b[1], cin);
+   xor G2 (w[2], b[2], cin);
+   xor G3 (w[3], b[3], cin);
+   xor G4 (w[4], b[4], cin);
+   xor G5 (w[5], b[5], cin);
+   xor G6 (w[6], b[6], cin);
+   xor G7 (w[7], b[7], cin);
+   xor G8 (w[8], b[8], cin);
+   xor G9 (w[9], b[9], cin);
+   xor G10 (w[10], b[10], cin);
+   xor G11 (w[11], b[11], cin);
+   xor G12 (w[12], b[12], cin);
+   xor G13 (w[13], b[13], cin);
+   xor G14 (w[14], b[14], cin);
+   xor G15 (w[15], b[15], cin);
 
    AddFull A0(a[0], w[0], cin , carry[0], sum[0]);
    AddFull A1(a[1], w[1], carry[0], carry[1], sum[1]);
@@ -504,12 +506,12 @@ module ALU(opcode, operand1, operand2,
    xor(result[5], operand1, operand2);
    xnor(result[6], operand1, operand2);
    not(result[7], operand1);
-   Add(operand1, operand2, 1'b0, highs[0], results[8]);
-   Sub(operand1, operand2, 1'b0, highs[1], results[9]);
-   Mult(operand1, operand2, highs[2], results[10]);
-   Div;                         // TODO: jacob please do this
-   ShiftLeft(operand1, operand2, results[12]);
-   ShiftRight(operand1, operand2, results[13]);
+   Add a(operand1, operand2, 1'b0, highs[0], results[8]);
+   Sub s(operand1, operand2, 1'b1, highs[1], results[9]);
+   Mult m(operand1, operand2, highs[2], results[10]);
+   //Div;                         // TODO: jacob please do this
+   ShiftLeft sl(operand1, operand2, results[12]);
+   ShiftRight sr(operand1, operand2, results[13]);
    
 
    wire [15:0]   arithmetic, logical, arithmeticHigh;
@@ -568,17 +570,17 @@ module testbench();
    // Sub S(a, b, 1'b1, carry, sum);
    // initial begin
    //   forever begin
-   //       #10 val1 = a;
+   //      #10 val1 = a;
    //       val2 = b;
    //       result = sum;
    //       overflow = carry;
-   //       $display("SUB:%s: %d - %d = %d%d",
-   //                (result == val1 - val2 + overflow * 16)? "FAIL":"PASS",val1, val2, overflow, result);
+   //       $display("SUB:%s: %d - %d =%d ovf:%d",
+   //                (result == val1 - val2)? "PASS":"FAIL",val1, val2, result, overflow);
    //    end
    // end
    // initial begin
-   //  assign a = 16'b0000000000000100;
-   //  assign b = 16'b0000000000000010;
+   //  assign a = 16'b1000001000000000;
+   //  assign b = 16'b1000000000000000;
    //    #10 $finish;
    // end
    
