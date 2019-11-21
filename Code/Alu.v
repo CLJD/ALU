@@ -30,7 +30,7 @@ module Mux8(a7, a6, a5, a4, a3, a2, a1, a0, s, b);
             (s[3]? a3 :
              (s[4]? a4 :
               (s[5]? a5 :
-               (s[6]? s6 : s7)))))));
+               (s[6]? a6 : a7)))))));
 endmodule // Mux8
 
 // Decoder4
