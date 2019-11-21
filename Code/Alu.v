@@ -18,6 +18,21 @@ module Mux4(a3, a2, a1, a0, s, b);
            (s[2]? a2 : a3)));
 endmodule // Mux4
 
+module Mux8(a7, a6, a5, a4, a3, a2, a1, a0, s, b);
+   parameter k = 5;
+   input [k-1:0] a7, a6, a5, a4, a3, a2, a1, a0;
+   input [7:0]   s;
+   output [k-1:0] b;
+   always @(a7, a6, a5, a4, a3, a2, a1, a0, s, b)
+     b = (s[0]? a0 :n
+          (s[1]? a1 :
+           (s[2]? a2 :
+            (s[3]? a3 :
+             (s[4]? a4 :
+              (s[5]? a5 :
+               (s[6]? s6 : s7)))))));
+endmodule // Mux8
+
 // Decoder4
 // |   in |              out |
 // |------+------------------|
@@ -499,7 +514,6 @@ module ALU(opcode, operand1, operand2,
 
    wire [15:0]   arithmetic, logical, arithmeticHigh;
    
-
    
    Mux2 fin1(result, opcode[3], arithmetic, logical);
    Mux2 fin2(high, opcode[3], arithmeticHigh, 0);
