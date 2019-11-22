@@ -1,4 +1,4 @@
-module Mux2 (out, signal, in1, in2);
+ module Mux2 (out, signal, in1, in2);
    parameter n = 4;
    input signal;
    input [n-1:0] in1;
