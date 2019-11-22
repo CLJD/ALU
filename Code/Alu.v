@@ -1,4 +1,4 @@
- module Mux2 (out, signal, in1, in2);
+module Mux2 (out, signal, in1, in2);
    parameter n = 4;
    input signal;
    input [n-1:0] in1;
@@ -529,6 +529,7 @@ module ALU(opcode, operand1, operand2,
    wire [7:0]    op1hot;
    
    Decoder3 op({opcode[2], opcode[1], opcode[0]}, op1hot);
+   // output
    Mux8 #(n) logicalDecision(resultNot,
                              resultXnor,
                              resultXor,
@@ -547,6 +548,8 @@ module ALU(opcode, operand1, operand2,
                                 resultSub,
                                 resultAdd,
                                 op1hot, arithmetic);
+   Mux2 #(n) fin1(result, opcode[3], arithmetic, logical);
+   // high
    Mux8 #(n) ArithmeticHighDecision(16'b0000000000000000,
                                     16'b0000000000000000,
                                     16'b0000000000000000,
@@ -556,17 +559,30 @@ module ALU(opcode, operand1, operand2,
                                     {15'b000000000000000,SubCout},
                                     {15'b000000000000000,AddCout},
                                     op1hot, arithmeticHigh);
-   
-   Mux2 #(n) fin1(result, opcode[3], arithmetic, logical);
    Mux2 #(n) fin2(high, opcode[3], arithmeticHigh, 16'b0000000000000000);
    
-   // if statusOutu is non zero then there is an error
+   // if statusOut is non zero then there is an error
    // | code | error          |
    // |------+----------------|
    // |   00 | no error       |
    // |   01 | carry-over     |
    // |   10 | divide by zero |
    // |   11 | overflow       |
+   wire          carryover = SubCout | AddCout;
+   wire          dividebyzero = !(operand2 & 0);
+   wire          overflow = ((!operand1[15] & !operand2[15]) & resultAdd[15]) | // two positive yeilding negative
+                 ((operand1[15] & operand2[15]) & !resultAdd[15]); // two negative yeilding a positive
+   // assign statusOut[0] = carryover | overflow;
+   // assign statusOut[1] = dividebyzero | overflow;
+   Mux8 #(2) status({1'b0,1'b0},
+                    {1'b0,1'b0},
+                    {1'b0,1'b0},
+                    {1'b0,1'b0},
+                    {dividebyzero, 1'b0},
+                    {1'b0,1'b0},
+                    {overflow, overflow | carryover},
+                    {overflow, overflow | carryover},
+                    op1hot, statusOut);
 endmodule // ALU
 
 module testbench();
@@ -590,11 +606,12 @@ module testbench();
    // | 1011 | divide    |
    // | 1100 | shift <-  |
    // | 1101 | shift ->  |
-   wire [15:0] val1 = 16'b0000000010000000;
-   wire [15:0] val2 = 2;
+   wire signed [15:0] val1 = 32768;
+   wire signed [15:0] val2 = 32768;
    wire [15:0] result1, result2;
+   reg [31:0]  MultResult;
    wire [1:0]  status;
-   reg [3:0]   Opcode = 4'b1010;
+   reg [3:0]   Opcode = 4'b1000;
    wire [3:0]  opcode = Opcode;
   
    ALU G(opcode, val1, val2, result1, result2, status);
@@ -610,10 +627,13 @@ module testbench();
       // $display("NOT: \t%16b", G.resultNot);
       // $display("ADD: \t%16b", G.resultAdd);
       // $display("SUB: \t%16b", G.resultSub);
-      // $display("MULT: \t%16b", G.resultMult);
+      // #100 $display("MULT: \t%16b", G.resultMult);
       // $display("SL: \t%16b", G.resultSL);
       // $display("SR: \t%16b", G.resultSR);
-      #10 $display("ALU: %16b",result1);
+      // #10 MultResult = result2;
+      // MultResult = result1 + (MultResult << 16);
+      // $display("ALU: %b : %d", status, result1);
+      
       
    end
               
