@@ -14,8 +14,8 @@
     * [ ] Updated Report - Dylan
     * [X] Updated Description - Dylan
     * [X] Updated Member Tasks List - All
-    * [ ] Updated Software Discovery - Liora
-    * [ ] Updated Participation Census - Liora
+    * [X] Updated Software Discovery - Liora
+    * [X] Updated Participation Census - Liora
     * *System Design*
     * [X] Title Page - Charles
     * [ ] Parts List - Dylan
