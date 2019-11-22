@@ -102,6 +102,18 @@ module comparator(
     end
 endmodule
 
+module sixteenBitComparator(a,b,eq,gt,lt);
+input [15:0] a,b;
+output eq,gt,lt;
+wire cout;
+wire [15:0] out;
+Sub #(16) s(a,b,cout,out);
+assign eq = ~out[15]&~out[14]&~out[13]&~out[12]&~out[11]&~out[10]&~out[9]&~out[8]&~out[7]&~out[6]&~out[5]&~out[4]&~out[3]&~out[2]&~out[1]&~out[0];
+assign gt = ~out[15]^eq;
+assign lt = out[15]^eq;
+
+endmodule
+
 module fourBitPriorityEncoder(in, out, valid);
    input [3:0] in;
    output valid;
@@ -117,19 +129,26 @@ module sixteenBitPriorityEncoder(in, out, valid);
    input [15:0] in;
    output [3:0] out;
    output valid;
-   wire [1:0] o0;
-   wire [1:0] o1;
-   wire [1:0] o2;
-   wire [1:0] o3;
-   wire [3:0] con1;
-   wire [3:0] con2;
-   assign con1 = {{o3[0]|o3[1]},{o2[0]|o2[1]},{o1[0]|o1[1]},{o0[0]|o0[1]}}; //used to determine the first 
+   wire [1:0] e1o,e2o,e3o,e4o;
+   wire [1:0] o1,o2,o3,o4;
+   wire [3:0] con1,con2;
+   //assign con1 = {{e4o[0]|e4o[1]},{e3o[0]|e3o[1]},{e2o[0]|e2o[1]},{e1o[0]|e1o[1]}}; //used to determine the first 
    //2 bits of the output of the encoder based on the section the highest priority 1 is located in
    wire v0,v1,v2,v3,v4,v5;
-   fourBitPriorityEncoder e1(in[3:0],o0,v0);
-   fourBitPriorityEncoder e2(in[7:4],o1,v1);
-   fourBitPriorityEncoder e3(in[11:8],o2,v2);
-   fourBitPriorityEncoder e4(in[15:12],o3,v3);
+   assign o1[0] = e1o[0] ^ v0;
+   assign o2[0] = e2o[0] ^ v1;
+   assign o3[0] = e3o[0] ^ v2;
+   assign o4[0] = e4o[0] ^ v3;
+   assign o1[1] = e1o[1];
+   assign o2[1] = e2o[1];
+   assign o3[1] = e3o[1];
+   assign o4[1] = e4o[1];
+   assign con1 = {{o4[0]|o4[1]},{o3[0]|o3[1]},{o2[0]|o2[1]},{o1[0]|o1[1]}};
+
+   fourBitPriorityEncoder e1(in[3:0],e1o,v0);
+   fourBitPriorityEncoder e2(in[7:4],e2o,v1);
+   fourBitPriorityEncoder e3(in[11:8],e3o,v2);
+   fourBitPriorityEncoder e4(in[15:12],e4o,v3);
    fourBitPriorityEncoder e5(con1,out[3:2],v4); //We encode con1 to use the out as a selector for the mux
    fourBitPriorityEncoder e6(con2,out[1:0],v5); 
    binaryMux4 #(4) m(in[3:0],in[7:4],in[11:8],in[15:12],out[3:2],con2); //depending on which section we choose the second part of the accordingly
@@ -353,23 +372,12 @@ module divideModule(dividend, divisor, quotientBit, result);
    input [n-1:0] divisor;
    output quotientBit;
    output [n-1:0] result;
-   reg quotientBit;
    wire [n-1:0] difference;
-   wire ovf; 
+   wire ovf,gt,lt,eq;
    AddSub1 s(dividend,divisor,1'b1,difference,ovf);
-   always @(divisor or dividend) begin
-      if (divisor>dividend) begin
-         quotientBit = 0;
-      end
-      else begin
-         quotientBit = 1;
-      end
-   //#10 $display("Dividend: %b, Divisor: %b, QuotientBit: %b, Result: %b",dividend, divisor, quotientBit,result);
-   end
+   sixteenBitComparator c(divisor,dividend,eq,gt,lt);
+   Mux2 #(1) m0(quotientBit,gt,1'b0,1'b1);
    Mux2 #(n) m(result, quotientBit, difference, dividend);
-   // always @(result) begin
-   //    $display("result: %b, quotientBit: %b, difference: %b, dividend: %b, divisor: %b",result,quotientBit,difference,dividend,divisor);
-   // end
 
 endmodule
 
@@ -390,7 +398,7 @@ module divide(dividend, divisor, quotient, remainder);
             remainder12,remainder13,remainder14,
             remainder15;
    wire [15:0] ovf,valid0,valid1,valid2;
-   wire [3:0] dendSize,sorSize,diffSize;
+   wire [3:0] dendSize,sorSize,diffSize,tempDiff;
    wire subOverflow;
    wire sign = dividend[15] ^ divisor[15];
    wire [15:0] dividendFixed = dividend;
@@ -400,11 +408,11 @@ module divide(dividend, divisor, quotient, remainder);
 
    sixteenBitPriorityEncoder e(dividendFixed, dendSize, valid0[0]);
    sixteenBitPriorityEncoder e1(divisorFixed, sorSize, valid1[0]);
-   Sub #(4) S2(dendSize,sorSize,valid2[0],diffSize);
-
-   always @(diffSize) begin
-      $display("%b-%b = %b",dendSize,sorSize,diffSize);
-   end
+   wire eq,gt,lt,gteq;
+   assign gteq = gt|eq;
+   sixteenBitComparator sBC(dividendFixed,divisorFixed,eq,gt,lt);
+   Sub #(4) S2(dendSize,sorSize,valid2[0],tempDiff);
+   assign diffSize = tempDiff & {4{gteq}};
 
    equalBitsDivide d0(dividend,divisor,quotient0,remainder0);
    oneShiftDivide d1(dividend,divisor,quotient1,remainder1);
@@ -448,7 +456,7 @@ module oneShiftDivide(dividend,divisor, quotient, remainder);
    wire [15:0] remainder13;
 
    ShiftLeft sll1(divisor,4'b0001,shiftedDivisor1);
-   assign quotient[15:3] = 12'b0;
+   assign quotient[15:2] = 12'b0;
 
    divideModule divideM13(dividend,shiftedDivisor1,quotient[1],remainder13);
    divideModule divideM14(remainder13,divisor,quotient[0],remainder);
@@ -879,27 +887,25 @@ endmodule
 
 module testbench();
    parameter n = 16;
-   reg [15:0] dividend = 16'b0000_0000_0000_1000;
-   reg [15:0] divisor = 16'b0000_1000_0000_0000;
+   reg [15:0] dividend = 255;
+   reg [15:0] divisor = 26;
    wire [15:0] quotient;
    wire [15:0] remainder;
-   wire cout;
+   wire cout,valid0,valid1;
    wire [3:0] diff;
 
-   wire [15:0] shiftResult;
+   wire [15:0] pEResult;
    wire [3:0] peAnswer0;
    wire [3:0] peAnswer1;
 
-   //Divide D(ready,quotient,remainder,dividend,divider,sign,clk);
-   //Sub #(5) S(test2,test1,cout,sum);
-   //Sub S(test2,test1,cout,sum);
-   //AddSub1 #(5) As(test4,test3,1'b1,sum,overflow);
    divide d(dividend, divisor, quotient, remainder);
+   sixteenBitPriorityEncoder pe1(divisor,peAnswer0,valid0);
+   sixteenBitPriorityEncoder pe2(dividend,peAnswer1,valid1);
    Sub #(4) S(peAnswer0,peAnswer1,cout,diff);
 
    initial begin
       #10 $display("Dividend: %d, Divisor: %d, Quotient: %d, Remainder: %d",dividend,divisor, quotient,remainder);
-      #10 $display("Dividend: %d, Divisor: %d, Quotient: %b, Remainder: %b",dividend,divisor, quotient,remainder);
+      #10 $display("Dividend: %b, Divisor: %b, Quotient: %b, Remainder: %b",dividend,divisor, quotient,remainder);
    end
 
 endmodule
