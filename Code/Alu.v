@@ -18,6 +18,20 @@ module Mux4(a3, a2, a1, a0, s, b);
            (s[2]? a2 : a3)));
 endmodule // Mux4
 
+module Mux8(a7, a6, a5, a4, a3, a2, a1, a0, s, b);
+   parameter k = 5;
+   input [k-1:0] a7, a6, a5, a4, a3, a2, a1, a0;
+   input [7:0]   s;
+   output [k-1:0] b;
+   assign b = (s[0]? a0 : 
+        (s[1]? a1 :
+         (s[2]? a2 :
+          (s[3]? a3 :
+           (s[4]? a4 :
+            (s[5]? a5 :
+             (s[6]? a6 : a7)))))));
+endmodule // Mux8
+
 // Decoder4
 // |   in |              out |
 // |------+------------------|
@@ -57,7 +71,18 @@ module Decoder4(n, out);
    assign out[14] = { n[3] &  n[2] &  n[1] & ~n[0]};
    assign out[15] = { n[3] &  n[2] &  n[1] &  n[0]};
 endmodule // Decoder4
-
+module Decoder3(n, out);
+   input [2:0] n;
+   output [7:0] out;
+   assign out[0] =  {~n[2] & ~n[1] & ~n[0]};
+   assign out[1] =  {~n[2] & ~n[1] &  n[0]};
+   assign out[2] =  {~n[2] &  n[1] & ~n[0]};
+   assign out[3] =  {~n[2] &  n[1] &  n[0]};
+   assign out[4] =  { n[2] & ~n[1] & ~n[0]};
+   assign out[5] =  { n[2] & ~n[1] &  n[0]};
+   assign out[6] =  { n[2] &  n[1] & ~n[0]};
+   assign out[7] =  { n[2] &  n[1] &  n[0]};
+endmodule // Decoder3
 // anti-right-arbiter
 // this makes all bits 1 to the right of the first 1 from the left
 module ARA(in, out);
@@ -460,6 +485,7 @@ endmodule // Div
 
 module ALU(opcode, operand1, operand2,
            result, high, statusOut);
+   parameter n = 16;
    input [3:0]   opcode;
    input [15:0]  operand1, operand2;
    output [15:0] result, high;
@@ -481,30 +507,59 @@ module ALU(opcode, operand1, operand2,
    // | 1011 | divide    |
    // | 1100 | shift <-  |
    // | 1101 | shift ->  |
-   wire [15:0]   results;
-   wire [3:0]    highs;
+   wire [15:0]   resultAnd, resultNand, resultOr, resultNor, resultXor, resultXnor, resultNot, resultAdd, resultSub, resultMult, resultDiv, resultSL, resultSR;
+   wire          AddCout, SubCout;
+   wire [15:0]   MultHigh, DivRem;
    
-   and(results[1], operand1, operand2);
-   nand(result[2], operand1, operand2);
-   or(result[3], operand1, operand2);
-   nor(result[4], operand1, operand2);
-   xor(result[5], operand1, operand2);
-   xnor(result[6], operand1, operand2);
-   not(result[7], operand1);
-   Add a(operand1, operand2, 1'b0, highs[0], results[8]);
-   Sub s(operand1, operand2, 1'b1, highs[1], results[9]);
-   Mult m(operand1, operand2, highs[2], results[10]);
+   and G0 [15:0] (resultAnd, operand1, operand2);
+   nand G1 [15:0] (resultNand, operand1, operand2);
+   or G2 [15:0] (resultOr, operand1, operand2);
+   nor G3 [15:0] (resultNor, operand1, operand2);
+   xor G4 [15:0] (resultXor, operand1, operand2);
+   xnor G5 [15:0] (resultXnor, operand1, operand2);
+   not G6 [15:0] (resultNot, operand1);
+   Add a(operand1, operand2, 1'b0, AddCout, resultAdd);
+   Sub s(operand1, operand2, 1'b1, SubCout, resultSub);
+   Mult m(operand1, operand2, MultHigh, resultMult);
    //Div;                         // TODO: jacob please do this
-   ShiftLeft sl(operand1, operand2, results[12]);
-   ShiftRight sr(operand1, operand2, results[13]);
-   
+   ShiftLeft sl(operand1, {operand2[3],operand2[2],operand2[1],operand2[0]}, resultSL);
+   ShiftRight sr(operand1, {operand2[3],operand2[2],operand2[1],operand2[0]}, resultSR);
 
    wire [15:0]   arithmetic, logical, arithmeticHigh;
+   wire [7:0]    op1hot;
    
-
+   Decoder3 op({opcode[2], opcode[1], opcode[0]}, op1hot);
+   Mux8 #(n) logicalDecision(resultNot,
+                             resultXnor,
+                             resultXor,
+                             resultNor,
+                             resultOr,
+                             resultNand,
+                             resultAnd,
+                             16'b0000000000000000,
+                             op1hot, logical);
+   Mux8 #(n) ArithmeticDecision(16'b0000000000000000,
+                                16'b0000000000000000,
+                                resultSR,
+                                resultSL,
+                                resultDiv,
+                                resultMult,
+                                resultSub,
+                                resultAdd,
+                                op1hot, arithmetic);
+   Mux8 #(n) ArithmeticHighDecision(16'b0000000000000000,
+                                    16'b0000000000000000,
+                                    16'b0000000000000000,
+                                    16'b0000000000000000,
+                                    DivRem,
+                                    MultHigh,
+                                    {15'b000000000000000,SubCout},
+                                    {15'b000000000000000,AddCout},
+                                    op1hot, arithmeticHigh);
    
-   Mux2 fin1(result, opcode[3], arithmetic, logical);
-   Mux2 fin2(high, opcode[3], arithmeticHigh, 0);
+   Mux2 #(n) fin1(result, opcode[3], arithmetic, logical);
+   Mux2 #(n) fin2(high, opcode[3], arithmeticHigh, 16'b0000000000000000);
+   
    // if statusOutu is non zero then there is an error
    // | code | error          |
    // |------+----------------|
@@ -512,10 +567,56 @@ module ALU(opcode, operand1, operand2,
    // |   01 | carry-over     |
    // |   10 | divide by zero |
    // |   11 | overflow       |
-   // state machine goes here
 endmodule // ALU
 
 module testbench();
+   /////////////////////
+   // test ALU
+   /////////////////////
+   // opcodes:
+   // | code | operation |
+   // |------+-----------|
+   // | 0000 | no-op     |
+   // | 0001 | and       |
+   // | 0010 | nand      |
+   // | 0011 | or        |
+   // | 0100 | nor       |
+   // | 0101 | xor       |
+   // | 0110 | xnor      |
+   // | 0111 | not       |
+   // | 1000 | add       |
+   // | 1001 | subtract  |
+   // | 1010 | multiply  |
+   // | 1011 | divide    |
+   // | 1100 | shift <-  |
+   // | 1101 | shift ->  |
+   wire [15:0] val1 = 16'b0000000010000000;
+   wire [15:0] val2 = 2;
+   wire [15:0] result1, result2;
+   wire [1:0]  status;
+   reg [3:0]   Opcode = 4'b1010;
+   wire [3:0]  opcode = Opcode;
+  
+   ALU G(opcode, val1, val2, result1, result2, status);
+
+   initial begin
+      // for debugging
+      // $display("AND: \t%16b", G.resultAnd);
+      // $display("NAND: \t%16b", G.resultNand);
+      // $display("OR: \t%16b", G.resultOr);
+      // $display("NOR: \t%16b", G.resultNor);
+      // $display("XOR: \t%16b", G.resultXor);
+      // $display("XNOR: \t%16b", G.resultXnor);
+      // $display("NOT: \t%16b", G.resultNot);
+      // $display("ADD: \t%16b", G.resultAdd);
+      // $display("SUB: \t%16b", G.resultSub);
+      // $display("MULT: \t%16b", G.resultMult);
+      // $display("SL: \t%16b", G.resultSL);
+      // $display("SR: \t%16b", G.resultSR);
+      #10 $display("ALU: %16b",result1);
+      
+   end
+              
    ////////////////////
    // test Add
    ////////////////////
