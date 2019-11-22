@@ -324,6 +324,29 @@ module ShiftLeft(num, shift, shifted);
    Mux2 #(n) L3_15 (shifted[15], shift[3], layer2[7], layer2[15]);
 endmodule // ShiftLeft
 
+module changeSign(sign,num,out);
+   parameter n= 16;
+   input sign;
+   input [n-1:0] num;
+   output [n-1:0] out;
+   wire valid;
+   wire [n-1:0] flippedNum;
+   Sub #(n) S(16'b0,num,valid,flippedNum);
+   Mux2 #(n) m(out,sign,flippedNum,num);
+endmodule
+
+module flipNegativeNum(sign,num1,num2,out1,out2);
+   parameter n = 16;
+   input sign;
+   input [n-1:0] num1,num2;
+   output [n-1:0] out1,out2;
+   wire [n-1:0] flippedNum1,flippedNum2;
+   changeSign #(n) cS1(sign,num1,flippedNum1);
+   changeSign #(n) cS2(sign,num2,flippedNum2);
+   Mux2 #(n) M1(out1,num1[n-1],flippedNum1,num1);
+   Mux2 #(n) M2(out2,num2[n-1],flippedNum2,num2);
+endmodule
+
 module divideModule(dividend, divisor, quotientBit, result);
    parameter n = 16;
    input [n-1:0] dividend;
@@ -354,47 +377,60 @@ module divide(dividend, divisor, quotient, remainder);
    parameter n = 16;
    input [15:0] dividend, divisor;
    output [15:0] quotient, remainder;
-   wire [15:0] ovf;
-   wire [15:0] valid0;
-   wire [15:0] valid1;
-   wire [15:0] valid2;
-   wire [3:0] dendSize;
-   wire [3:0] sorSize;
-   wire [3:0] diffSize;
-   wire [15:0] shiftedDivisor;
+   wire [15:0] quotient0, quotient1,quotient2,
+               quotient3,quotient4,quotient5,
+               quotient6,quotient7,quotient8,
+               quotient9,quotient10,quotient11,
+               quotient12,quotient13,quotient14,
+               quotient15;
+   wire [15:0] remainder0,remainder1,remainder2,
+            remainder3,remainder4,remainder5,
+            remainder6, remainder7,remainder8,
+            remainder9,remainder10,remainder11,
+            remainder12,remainder13,remainder14,
+            remainder15;
+   wire [15:0] ovf,valid0,valid1,valid2;
+   wire [3:0] dendSize,sorSize,diffSize;
    wire subOverflow;
    wire sign = dividend[15] ^ divisor[15];
    wire [15:0] dividendFixed = dividend;
    wire [15:0] divisorFixed = divisor;
    wire [15:0] quotientOut, remainderOut;
-   // always @(sign) begin
-   //    if (sign==0) begin
-   //       if (dividend[15]==1) begin
-   //          //  Sub #(16) s1(0,dividend,subOverflow,dividendFixed);
-   //          // assign divisorFixed = divisor;
-   //       end
-   //       else begin
-   //          // Sub S1(16'b0,divisorFixed,subOverflow,divisorFixed);
-   //          // assign dividendFixed = dividend;
-   //       end
-   //    end
-   //    else begin
-   //       assign dividendFixed = dividend;
-   //       assign divisorFixed = divisor;
-   //    end
-   // end
+   flipNegativeNum fNN(sign,dividend,divisor,dividendFixed,divisorFixed);
 
    sixteenBitPriorityEncoder e(dividendFixed, dendSize, valid0[0]);
    sixteenBitPriorityEncoder e1(divisorFixed, sorSize, valid1[0]);
    Sub #(4) S2(dendSize,sorSize,valid2[0],diffSize);
-   ShiftLeft sll(divisorFixed,diffSize,shiftedDivisor);
-   // always @(quotient or remainder) begin
-   //    $display("In divide module: %b, %b",quotient,remainder);
-   // end
-   thirteenShiftDivide shiftDivide(dividendFixed,divisorFixed,quotient,remainder);
-   // always @(dividend or divisor) begin
-   //    if()
-   // end
+
+   always @(diffSize) begin
+      $display("%b-%b = %b",dendSize,sorSize,diffSize);
+   end
+
+   equalBitsDivide d0(dividend,divisor,quotient0,remainder0);
+   oneShiftDivide d1(dividend,divisor,quotient1,remainder1);
+   twoShiftDivide d2(dividend,divisor,quotient2,remainder2);
+   threeShiftDivide d3(dividend,divisor,quotient3,remainder3);
+   fourShiftDivide d4(dividend,divisor,quotient4,remainder4);
+   fiveShiftDivide d5(dividend,divisor,quotient5,remainder5);
+   sixShiftDivide d6(dividend,divisor,quotient6,remainder6);
+   sevenShiftDivide d7(dividend,divisor,quotient7,remainder7);
+   eightShiftDivide d8(dividend,divisor,quotient8,remainder8);
+   nineShiftDivide d9(dividend,divisor,quotient9,remainder9);
+   tenShiftDivide d10(dividend,divisor,quotient10,remainder10);
+   elevenShiftDivide d11(dividend,divisor,quotient11,remainder11);
+   twelveShiftDivide d12(dividend,divisor,quotient12,remainder12);
+   thirteenShiftDivide d13(dividend,divisor,quotient13,remainder13);
+   fourteenShiftDivide d14(dividend,divisor,quotient14,remainder14);
+   fifteenShiftDivide d15(dividend,divisor,quotient15,remainder15);
+   
+   sixteenBitMux muxQ(quotient0,quotient1,quotient2,quotient3,quotient4,quotient5,
+                     quotient6,quotient7,quotient8,quotient9,quotient10,quotient11,
+                     quotient12,quotient13,quotient14,quotient15,diffSize,quotientOut);
+   sixteenBitMux muxR(remainder0,remainder1,remainder2,remainder3,remainder4,remainder5,
+                     remainder6,remainder7,remainder8,remainder9,remainder10,remainder11,
+                     remainder12,remainder13,remainder14,remainder15,diffSize,remainderOut);
+   changeSign #(16) fNNQ(sign,quotientOut,quotient);
+   changeSign #(16) fNNR(dividend[15],remainderOut,remainder);
 endmodule
 
 module equalBitsDivide(dividend,divisor, quotient, remainder);
@@ -698,7 +734,7 @@ module elevenShiftDivide(dividend,divisor, quotient, remainder);
    divideModule divideM14(remainder13,divisor,quotient[0],remainder);
 endmodule
 
-module tweleveShiftDivide(dividend,divisor, quotient, remainder);
+module twelveShiftDivide(dividend,divisor, quotient, remainder);
    input [15:0] dividend;
    input [15:0] divisor;
    output [15:0] quotient, remainder;
@@ -843,8 +879,8 @@ endmodule
 
 module testbench();
    parameter n = 16;
-   reg [15:0] dividend = 16'b0100_0000_0000_0000;
-   reg [15:0] divisor = 16'b0000_0000_0000_0010;
+   reg [15:0] dividend = 16'b0000_0000_0000_1000;
+   reg [15:0] divisor = 16'b0000_1000_0000_0000;
    wire [15:0] quotient;
    wire [15:0] remainder;
    wire cout;
@@ -863,7 +899,7 @@ module testbench();
 
    initial begin
       #10 $display("Dividend: %d, Divisor: %d, Quotient: %d, Remainder: %d",dividend,divisor, quotient,remainder);
-      #10 $display("Dividend: %b. Divisor: %b. Quotient: %b. Reaminder: %b",dividend,divisor,quotient,remainder);
+      #10 $display("Dividend: %d, Divisor: %d, Quotient: %b, Remainder: %b",dividend,divisor, quotient,remainder);
    end
 
 endmodule
