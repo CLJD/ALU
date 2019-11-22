@@ -23,7 +23,6 @@ module Mux8(a7, a6, a5, a4, a3, a2, a1, a0, s, b);
    input [k-1:0] a7, a6, a5, a4, a3, a2, a1, a0;
    input [7:0]   s;
    output [k-1:0] b;
-   //always @(a7, a6, a5, a4, a3, a2, a1, a0, s, b)
    assign b = (s[0]? a0 : 
         (s[1]? a1 :
          (s[2]? a2 :
@@ -519,7 +518,7 @@ module ALU(opcode, operand1, operand2,
    xor G4 [15:0] (resultXor, operand1, operand2);
    xnor G5 [15:0] (resultXnor, operand1, operand2);
    not G6 [15:0] (resultNot, operand1);
-   Add a(operand1, operand2, 1'b0, AddCout, resultAnd);
+   Add a(operand1, operand2, 1'b0, AddCout, resultAdd);
    Sub s(operand1, operand2, 1'b1, SubCout, resultSub);
    Mult m(operand1, operand2, MultHigh, resultMult);
    //Div;                         // TODO: jacob please do this
@@ -595,22 +594,27 @@ module testbench();
    wire [15:0] val2 = 2;
    wire [15:0] result1, result2;
    wire [1:0]  status;
+   reg [3:0]   Opcode = 4'b1010;
+   wire [3:0]  opcode = Opcode;
   
-   ALU G(4'b0001, val1, val2, result1, result2, status);
+   ALU G(opcode, val1, val2, result1, result2, status);
 
    initial begin
-      #100 $display("AND: \t%16b", G.resultAnd);
-      $display("NAND: \t%16b", G.resultNand);
-      $display("OR: \t%16b", G.resultOr);
-      $display("NOR: \t%16b", G.resultNor);
-      $display("XOR: \t%16b", G.resultXor);
-      $display("XNOR: \t%16b", G.resultXnor);
-      $display("NOT: \t%16b", G.resultNot);
-      $display("ADD: \t%16b", G.resultAdd);
-      $display("SUB: \t%16b", G.resultSub);
-      $display("MULT: \t%16b", G.resultMult);
-      $display("SL: \t%16b", G.resultSL);
-      $display("SR: \t%16b", G.resultSR);
+      // for debugging
+      // $display("AND: \t%16b", G.resultAnd);
+      // $display("NAND: \t%16b", G.resultNand);
+      // $display("OR: \t%16b", G.resultOr);
+      // $display("NOR: \t%16b", G.resultNor);
+      // $display("XOR: \t%16b", G.resultXor);
+      // $display("XNOR: \t%16b", G.resultXnor);
+      // $display("NOT: \t%16b", G.resultNot);
+      // $display("ADD: \t%16b", G.resultAdd);
+      // $display("SUB: \t%16b", G.resultSub);
+      // $display("MULT: \t%16b", G.resultMult);
+      // $display("SL: \t%16b", G.resultSL);
+      // $display("SR: \t%16b", G.resultSR);
+      #10 $display("ALU: %16b",result1);
+      
    end
               
    ////////////////////
