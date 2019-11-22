@@ -359,7 +359,7 @@ module flipNegativeNum(sign,num1,num2,out1,out2);
    input sign;
    input [n-1:0] num1,num2;
    output [n-1:0] out1,out2;
-   wire [n-1:0] flippedNum1,flippedNum2;
+   wire [n-1:0] flippedNum1,flippedNum2, tempIn1, tempIn2;
    changeSign #(n) cS1(sign,num1,flippedNum1);
    changeSign #(n) cS2(sign,num2,flippedNum2);
    Mux2 #(n) M1(out1,num1[n-1],flippedNum1,num1);
@@ -401,11 +401,15 @@ module divide(dividend, divisor, quotient, remainder);
    wire [3:0] dendSize,sorSize,diffSize,tempDiff;
    wire subOverflow;
    wire sign = dividend[15] ^ divisor[15];
-   wire [15:0] dividendFixed = dividend;
-   wire [15:0] divisorFixed = divisor;
+   wire doubleNegative = dividend[15] & divisor[15];
+   wire [15:0] dividendFixed, divisorFixed;
+   wire [15:0] divisorOneFlipped, dividendOneFlipped, divisorFlipped, dividendFlipped;
    wire [15:0] quotientOut, remainderOut;
-   flipNegativeNum fNN(sign,dividend,divisor,dividendFixed,divisorFixed);
-
+   flipNegativeNum fNN(sign,dividend,divisor,dividendOneFlipped,divisorOneFlipped);
+   changeSign cS0(doubleNegative,dividend,dividendFlipped);
+   changeSign cS1(doubleNegative,divisor,divisorFlipped);
+   Mux2 #(16) muxEnd(dividendFixed,doubleNegative,dividendFlipped,dividendOneFlipped);
+   Mux2 #(16) muxSor(divisorFixed,doubleNegative,divisorFlipped,divisorOneFlipped);
    sixteenBitPriorityEncoder e(dividendFixed, dendSize, valid0[0]);
    sixteenBitPriorityEncoder e1(divisorFixed, sorSize, valid1[0]);
    wire eq,gt,lt,gteq;
@@ -414,22 +418,22 @@ module divide(dividend, divisor, quotient, remainder);
    Sub #(4) S2(dendSize,sorSize,valid2[0],tempDiff);
    assign diffSize = tempDiff & {4{gteq}};
 
-   equalBitsDivide d0(dividend,divisor,quotient0,remainder0);
-   oneShiftDivide d1(dividend,divisor,quotient1,remainder1);
-   twoShiftDivide d2(dividend,divisor,quotient2,remainder2);
-   threeShiftDivide d3(dividend,divisor,quotient3,remainder3);
-   fourShiftDivide d4(dividend,divisor,quotient4,remainder4);
-   fiveShiftDivide d5(dividend,divisor,quotient5,remainder5);
-   sixShiftDivide d6(dividend,divisor,quotient6,remainder6);
-   sevenShiftDivide d7(dividend,divisor,quotient7,remainder7);
-   eightShiftDivide d8(dividend,divisor,quotient8,remainder8);
-   nineShiftDivide d9(dividend,divisor,quotient9,remainder9);
-   tenShiftDivide d10(dividend,divisor,quotient10,remainder10);
-   elevenShiftDivide d11(dividend,divisor,quotient11,remainder11);
-   twelveShiftDivide d12(dividend,divisor,quotient12,remainder12);
-   thirteenShiftDivide d13(dividend,divisor,quotient13,remainder13);
-   fourteenShiftDivide d14(dividend,divisor,quotient14,remainder14);
-   fifteenShiftDivide d15(dividend,divisor,quotient15,remainder15);
+   equalBitsDivide d0(dividendFixed,divisorFixed,quotient0,remainder0);
+   oneShiftDivide d1(dividendFixed,divisorFixed,quotient1,remainder1);
+   twoShiftDivide d2(dividendFixed,divisorFixed,quotient2,remainder2);
+   threeShiftDivide d3(dividendFixed,divisorFixed,quotient3,remainder3);
+   fourShiftDivide d4(dividendFixed,divisorFixed,quotient4,remainder4);
+   fiveShiftDivide d5(dividendFixed,divisorFixed,quotient5,remainder5);
+   sixShiftDivide d6(dividendFixed,divisorFixed,quotient6,remainder6);
+   sevenShiftDivide d7(dividendFixed,divisorFixed,quotient7,remainder7);
+   eightShiftDivide d8(dividendFixed,divisorFixed,quotient8,remainder8);
+   nineShiftDivide d9(dividendFixed,divisorFixed,quotient9,remainder9);
+   tenShiftDivide d10(dividendFixed,divisorFixed,quotient10,remainder10);
+   elevenShiftDivide d11(dividendFixed,divisorFixed,quotient11,remainder11);
+   twelveShiftDivide d12(dividendFixed,divisorFixed,quotient12,remainder12);
+   thirteenShiftDivide d13(dividendFixed,divisorFixed,quotient13,remainder13);
+   fourteenShiftDivide d14(dividendFixed,divisorFixed,quotient14,remainder14);
+   fifteenShiftDivide d15(dividendFixed,divisorFixed,quotient15,remainder15);
    
    sixteenBitMux muxQ(quotient0,quotient1,quotient2,quotient3,quotient4,quotient5,
                      quotient6,quotient7,quotient8,quotient9,quotient10,quotient11,
@@ -439,6 +443,11 @@ module divide(dividend, divisor, quotient, remainder);
                      remainder12,remainder13,remainder14,remainder15,diffSize,remainderOut);
    changeSign #(16) fNNQ(sign,quotientOut,quotient);
    changeSign #(16) fNNR(dividend[15],remainderOut,remainder);
+
+   always @(dividendFixed or divisorFixed) begin
+      $display("dividendFixed: %b, divsorFixed: %b",dividendFixed,divisorFixed);
+   end
+
 endmodule
 
 module equalBitsDivide(dividend,divisor, quotient, remainder);
@@ -887,22 +896,11 @@ endmodule
 
 module testbench();
    parameter n = 16;
-   reg [15:0] dividend = 255;
-   reg [15:0] divisor = 26;
-   wire [15:0] quotient;
-   wire [15:0] remainder;
-   wire cout,valid0,valid1;
-   wire [3:0] diff;
-
-   wire [15:0] pEResult;
-   wire [3:0] peAnswer0;
-   wire [3:0] peAnswer1;
+   reg signed [15:0] dividend = -101;
+   reg signed [15:0] divisor = -10;
+   wire signed [15:0] quotient, remainder;
 
    divide d(dividend, divisor, quotient, remainder);
-   sixteenBitPriorityEncoder pe1(divisor,peAnswer0,valid0);
-   sixteenBitPriorityEncoder pe2(dividend,peAnswer1,valid1);
-   Sub #(4) S(peAnswer0,peAnswer1,cout,diff);
-
    initial begin
       #10 $display("Dividend: %d, Divisor: %d, Quotient: %d, Remainder: %d",dividend,divisor, quotient,remainder);
       #10 $display("Dividend: %b, Divisor: %b, Quotient: %b, Remainder: %b",dividend,divisor, quotient,remainder);
