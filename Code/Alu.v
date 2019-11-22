@@ -11,21 +11,20 @@ module Mux4(a3, a2, a1, a0, s, b);
    parameter k = 5;
    input [k-1:0] a3, a2, a1, a0; // inputs
    input [3:0]   s;              // one-hot select
-   output reg[k-1:0] b;
-   always @(a3, a2, a1, a0, s, b)
-     b = (s[0]? a0 :
-          (s[1]? a1 :
-           (s[2]? a2 : a3)));
+   output [k-1:0] b;
+   assign b = (s[0]? a0 :
+               (s[1]? a1 :
+                (s[2]? a2 : a3)));
 endmodule // Mux4
 
 module binaryMux4(a,b,c,d,sel,out);
    parameter n = 16;
-   input [n-1:0] a;                  // 4-bit input called a
-   input [n-1:0] b;                 // 4-bit input called b
-   input [n-1:0] c;                // 4-bit input called c
-   input [n-1:0] d;               // 4-bit input called d
-   input [1:0] sel;              // input sel used to select between a,b,c,d
-   output [n-1:0] out;          // 4-bit output based on input sel
+   input [n-1:0] a;        // 4-bit input called a
+   input [n-1:0] b;        // 4-bit input called b
+   input [n-1:0] c;        // 4-bit input called c
+   input [n-1:0] d;        // 4-bit input called d
+   input [1:0] sel;        // input sel used to select between a,b,c,d
+   output [n-1:0] out;     // 4-bit output based on input sel
  
    // When sel[1] is 0, (sel[0]? b:a) is selected and when sel[1] is 1, (sel[0] ? d:c) is taken
    // When sel[0] is 0, a is sent to output, else b and when sel[0] is 0, c is sent to output, else d
