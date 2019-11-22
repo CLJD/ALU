@@ -8,7 +8,7 @@
     - [X] Draft Software Discovery - Liora
     - [X] Participation Census - Dylan
       this means looking at commit history for each file and deciding who has done what percentage of the project so far
-* DONE Final Deliverables [38%]
+* DONE Final Deliverables [42%]
     * *Updated Report*
     * [X] Title Page - Dylan
     * [ ] Updated Report - Dylan
@@ -24,15 +24,15 @@
     * [ ] Interface List - Dylan
     * [ ] Module List - Charles
     * [ ] Mode List - Liora
-    * [ ] Circuit Diagram - Jacob
+    * [ ] Circuit Diagram - ALL
     * [ ] State Machine Diagrams - Jacob
     * *Code and Output*
     * [X] Add - Charles
     * [X] Subtract - Liora
     * [X] Multiply - Dylan
-    * [ ] Divide - Jacob
+    * [X] Divide - Jacob
     * [X] Bit shift - Charles
-    * [ ] Output (Show the operations) - All
+    * [ ] Output (Show the operations) - Charles
 * Title Page
 * Parts List
 * Input List
