@@ -18,12 +18,14 @@ module Mux4(a3, a2, a1, a0, s, b);
            (s[2]? a2 : a3)));
 endmodule // Mux4
 
-module binaryMux4( input [15:0] a,                 // 4-bit input called a
-                         input [15:0] b,                 // 4-bit input called b
-                         input [15:0] c,                 // 4-bit input called c
-                         input [15:0] d,                 // 4-bit input called d
-                         input [1:0] sel,               // input sel used to select between a,b,c,d
-                         output [15:0] out);             // 4-bit output based on input sel
+module binaryMux4(a,b,c,d,sel,out);
+   parameter n = 16;
+   input [n-1:0] a;                  // 4-bit input called a
+   input [n-1:0] b;                 // 4-bit input called b
+   input [n-1:0] c;                // 4-bit input called c
+   input [n-1:0] d;               // 4-bit input called d
+   input [1:0] sel;              // input sel used to select between a,b,c,d
+   output [n-1:0] out;          // 4-bit output based on input sel
  
    // When sel[1] is 0, (sel[0]? b:a) is selected and when sel[1] is 1, (sel[0] ? d:c) is taken
    // When sel[0] is 0, a is sent to output, else b and when sel[0] is 0, c is sent to output, else d
@@ -130,7 +132,7 @@ module sixteenBitPriorityEncoder(in, out, valid);
    fourBitPriorityEncoder e4(in[15:12],o3,v3);
    fourBitPriorityEncoder e5(con1,out[3:2],v4); //We encode con1 to use the out as a selector for the mux
    fourBitPriorityEncoder e6(con2,out[1:0],v5); 
-   binaryMux4 m(in[3:0],in[7:4],in[11:8],in[15:12],out[3:2],con2); //depending on which section we choose the second part of the accordingly
+   binaryMux4 #(4) m(in[3:0],in[7:4],in[11:8],in[15:12],out[3:2],con2); //depending on which section we choose the second part of the accordingly
    assign valid = v4 | v5;
 endmodule
 
@@ -330,28 +332,28 @@ module divideModule(dividend, divisor, quotientBit, result);
    output [n-1:0] result;
    reg quotientBit;
    wire [n-1:0] difference;
-   wire ovf;
-
+   wire ovf; 
    AddSub1 s(dividend,divisor,1'b1,difference,ovf);
    always @(divisor or dividend) begin
-      if (divisor>=dividend) begin
+      if (divisor>dividend) begin
          quotientBit = 0;
       end
       else begin
          quotientBit = 1;
       end
-   #10 $display("Dividend: %b, Divisor: %b, QuotientBit: %b, Result: %b",dividend, divisor, quotientBit,result);
+   //#10 $display("Dividend: %b, Divisor: %b, QuotientBit: %b, Result: %b",dividend, divisor, quotientBit,result);
    end
    Mux2 #(n) m(result, quotientBit, difference, dividend);
+   // always @(result) begin
+   //    $display("result: %b, quotientBit: %b, difference: %b, dividend: %b, divisor: %b",result,quotientBit,difference,dividend,divisor);
+   // end
 
 endmodule
 
 module divide(dividend, divisor, quotient, remainder);
    parameter n = 16;
-   input [15:0] dividend;
-   input [15:0] divisor;
-   output [15:0] quotient;
-   output [15:0] remainder;
+   input [15:0] dividend, divisor;
+   output [15:0] quotient, remainder;
    wire [15:0] ovf;
    wire [15:0] valid0;
    wire [15:0] valid1;
@@ -362,98 +364,506 @@ module divide(dividend, divisor, quotient, remainder);
    wire [15:0] shiftedDivisor;
    wire subOverflow;
    wire sign = dividend[15] ^ divisor[15];
-   wire [15:0] dividendFixed;
-   //    always @(sign) begin
-   //       if (sign == 0) begin
-   //          Sub S1(16'b0,dividend,subOverflow,dividendFixed);
+   wire [15:0] dividendFixed = dividend;
+   wire [15:0] divisorFixed = divisor;
+   wire [15:0] quotientOut, remainderOut;
+   // always @(sign) begin
+   //    if (sign==0) begin
+   //       if (dividend[15]==1) begin
+   //          //  Sub #(16) s1(0,dividend,subOverflow,dividendFixed);
+   //          // assign divisorFixed = divisor;
    //       end
    //       else begin
-   //          dividendFixed = dividend;
+   //          // Sub S1(16'b0,divisorFixed,subOverflow,divisorFixed);
+   //          // assign dividendFixed = dividend;
    //       end
    //    end
-   sixteenBitPriorityEncoder e(dividend, dendSize, valid0[0]);
-   sixteenBitPriorityEncoder e1(divisor, sorSize, valid1[0]);
-   Sub #(16) S2(dendSize,sorSize,valid2[0],diffSize);
-   ShiftLeft sll(divisor,diffSize,shiftedDivisor);
-   divideModule divideM(dividend,shiftedDivisor,quotient[0],remainder);
-   integer i;
+   //    else begin
+   //       assign dividendFixed = dividend;
+   //       assign divisorFixed = divisor;
+   //    end
+   // end
 
-   always @(quotient) begin
-      $display("shiftedDivisor:%b",quotient);
-   end
-
-   initial begin
-      for (i = 1; i < diffSize; i = i + 1) begin
-      end
-   end
-
-   divideModule dM(dividend,shiftedDivisor,quotient[0],remainder);
-   // genvar i; //variable for iteration in generate for loop
-   //    generate //generate code over and over
-   //       for (i = 0;i<n;i=i+1) begin //generate multiple instances
-   //          if(i==0) begin//For the first time take the cin
-   //             sixteenBitPriorityEncoder e(dividend, dendSize, valid0[i]);
-   //             sixteenBitPriorityEncoder e1(divisor, sorSize, valid1[i]);
-   //             Sub #(16) S2(dendSize,sorSize,valid2[i],diffSize);
-   //             ShiftLeft sll(divisor,diffSize,shiftedDivisor);
-   //             divideModule dM(dividend,shiftedDivisor,quotient[i],);
-   //             end
-   //          else begin //otherwise just do the usual
-   //             sixteenBitPriorityEncoder e(dividend, dendSize, valid0[i]);
-   //             sixteenBitPriorityEncoder e1(divisor, sorSize, valid1[i]);
-   //             Sub #(16) S2(dendSize,sorSize,valid2[i],diffSize);
-   //             ShiftRight srl(divisor,diffSize,shiftedDivisor);
-   //             //divideModule dM();
-   //             end
-   //          end
-   //    endgenerate
-
+   sixteenBitPriorityEncoder e(dividendFixed, dendSize, valid0[0]);
+   sixteenBitPriorityEncoder e1(divisorFixed, sorSize, valid1[0]);
+   Sub #(4) S2(dendSize,sorSize,valid2[0],diffSize);
+   ShiftLeft sll(divisorFixed,diffSize,shiftedDivisor);
+   // always @(quotient or remainder) begin
+   //    $display("In divide module: %b, %b",quotient,remainder);
+   // end
+   thirteenShiftDivide shiftDivide(dividendFixed,divisorFixed,quotient,remainder);
    // always @(dividend or divisor) begin
    //    if()
    // end
 endmodule
 
+module equalBitsDivide(dividend,divisor, quotient, remainder);
+   input [15:0] dividend,divisor;
+   output [15:0] quotient, remainder;
+   assign quotient[15:1] = 14'b0;
+   divideModule divideM(dividend,divisor,quotient[0],remainder);
+endmodule
+
+module oneShiftDivide(dividend,divisor, quotient, remainder);
+   input [15:0] dividend;
+   input [15:0] divisor;
+   output [15:0] quotient, remainder;
+   wire [15:0] shiftedDivisor1;
+   wire [15:0] remainder13;
+
+   ShiftLeft sll1(divisor,4'b0001,shiftedDivisor1);
+   assign quotient[15:3] = 12'b0;
+
+   divideModule divideM13(dividend,shiftedDivisor1,quotient[1],remainder13);
+   divideModule divideM14(remainder13,divisor,quotient[0],remainder);
+endmodule
+
+module twoShiftDivide(dividend,divisor, quotient, remainder);
+   input [15:0] dividend;
+   input [15:0] divisor;
+   output [15:0] quotient, remainder;
+   wire [15:0] shiftedDivisor1,shiftedDivisor2,shiftedDivisor3;
+   wire [15:0] remainder11,remainder12,remainder13;
+
+   ShiftLeft sll2(divisor,4'b0010,shiftedDivisor2);
+   ShiftLeft sll1(divisor,4'b0001,shiftedDivisor1);
+   assign quotient[15:3] = 12'b0;
+
+   divideModule divideM12(dividend,shiftedDivisor2,quotient[2],remainder12);
+   divideModule divideM13(remainder12,shiftedDivisor1,quotient[1],remainder13);
+   divideModule divideM14(remainder13,divisor,quotient[0],remainder);
+endmodule
+
+module threeShiftDivide(dividend,divisor, quotient, remainder);
+   input [15:0] dividend;
+   input [15:0] divisor;
+   output [15:0] quotient, remainder;
+   wire [15:0] shiftedDivisor1,shiftedDivisor2,shiftedDivisor3;
+   wire [15:0] remainder11,remainder12,remainder13;
+
+   ShiftLeft sll3(divisor,4'b0011,shiftedDivisor3);
+   ShiftLeft sll2(divisor,4'b0010,shiftedDivisor2);
+   ShiftLeft sll1(divisor,4'b0001,shiftedDivisor1);
+   assign quotient[15:4] = 11'b0;
+
+   divideModule divideM11(dividend,shiftedDivisor3,quotient[3],remainder11);
+   divideModule divideM12(remainder11,shiftedDivisor2,quotient[2],remainder12);
+   divideModule divideM13(remainder12,shiftedDivisor1,quotient[1],remainder13);
+   divideModule divideM14(remainder13,divisor,quotient[0],remainder);
+endmodule
+
+module fourShiftDivide(dividend,divisor, quotient, remainder);
+   input [15:0] dividend;
+   input [15:0] divisor;
+   output [15:0] quotient, remainder;
+   wire [15:0] shiftedDivisor1,shiftedDivisor2,shiftedDivisor3,
+               shiftedDivisor4;
+   wire [15:0] remainder10,remainder11,remainder12,
+               remainder13;
+   assign quotient[15:5] = 11'b0;
+
+   ShiftLeft sll4(divisor,4'b0100,shiftedDivisor4);
+   ShiftLeft sll3(divisor,4'b0011,shiftedDivisor3);
+   ShiftLeft sll2(divisor,4'b0010,shiftedDivisor2);
+   ShiftLeft sll1(divisor,4'b0001,shiftedDivisor1);
+   
+   divideModule divideM10(dividend,shiftedDivisor4,quotient[4],remainder10);
+   divideModule divideM11(remainder10,shiftedDivisor3,quotient[3],remainder11);
+   divideModule divideM12(remainder11,shiftedDivisor2,quotient[2],remainder12);
+   divideModule divideM13(remainder12,shiftedDivisor1,quotient[1],remainder13);
+   divideModule divideM14(remainder13,divisor,quotient[0],remainder);
+endmodule
+
+module fiveShiftDivide(dividend,divisor, quotient, remainder);
+   input [15:0] dividend;
+   input [15:0] divisor;
+   output [15:0] quotient, remainder;
+   wire [15:0] shiftedDivisor1,shiftedDivisor2,shiftedDivisor3,
+               shiftedDivisor4,shiftedDivisor5;
+   wire [15:0] remainder9,remainder10,remainder11,
+               remainder12,remainder13;
+
+   ShiftLeft sll5(divisor,4'b0101,shiftedDivisor5);
+   ShiftLeft sll4(divisor,4'b0100,shiftedDivisor4);
+   ShiftLeft sll3(divisor,4'b0011,shiftedDivisor3);
+   ShiftLeft sll2(divisor,4'b0010,shiftedDivisor2);
+   ShiftLeft sll1(divisor,4'b0001,shiftedDivisor1);
+   assign quotient[15:6] = 10'b0;
+
+   divideModule divideM9(dividend,shiftedDivisor5,quotient[5],remainder9);
+   divideModule divideM10(remainder9,shiftedDivisor4,quotient[4],remainder10);
+   divideModule divideM11(remainder10,shiftedDivisor3,quotient[3],remainder11);
+   divideModule divideM12(remainder11,shiftedDivisor2,quotient[2],remainder12);
+   divideModule divideM13(remainder12,shiftedDivisor1,quotient[1],remainder13);
+   divideModule divideM14(remainder13,divisor,quotient[0],remainder);
+endmodule
+
+module sixShiftDivide(dividend,divisor, quotient, remainder);
+   input [15:0] dividend;
+   input [15:0] divisor;
+   output [15:0] quotient, remainder;
+   wire [15:0] shiftedDivisor1,shiftedDivisor2,shiftedDivisor3,
+               shiftedDivisor4,shiftedDivisor5,shiftedDivisor6;
+   wire [15:0] remainder8,remainder9,remainder10,
+               remainder11,remainder12,remainder13;
+
+   ShiftLeft sll6(divisor,4'b0110,shiftedDivisor6);
+   ShiftLeft sll5(divisor,4'b0101,shiftedDivisor5);
+   ShiftLeft sll4(divisor,4'b0100,shiftedDivisor4);
+   ShiftLeft sll3(divisor,4'b0011,shiftedDivisor3);
+   ShiftLeft sll2(divisor,4'b0010,shiftedDivisor2);
+   ShiftLeft sll1(divisor,4'b0001,shiftedDivisor1);
+   assign quotient[15:7] = 9'b0;
+
+   divideModule divideM8(dividend,shiftedDivisor6,quotient[6],remainder8);
+   divideModule divideM9(remainder8,shiftedDivisor5,quotient[5],remainder9);
+   divideModule divideM10(remainder9,shiftedDivisor4,quotient[4],remainder10);
+   divideModule divideM11(remainder10,shiftedDivisor3,quotient[3],remainder11);
+   divideModule divideM12(remainder11,shiftedDivisor2,quotient[2],remainder12);
+   divideModule divideM13(remainder12,shiftedDivisor1,quotient[1],remainder13);
+   divideModule divideM14(remainder13,divisor,quotient[0],remainder);
+endmodule
+
+module sevenShiftDivide(dividend,divisor, quotient, remainder);
+   input [15:0] dividend;
+   input [15:0] divisor;
+   output [15:0] quotient, remainder;
+   wire [15:0] shiftedDivisor1,shiftedDivisor2,shiftedDivisor3,
+               shiftedDivisor4,shiftedDivisor5,shiftedDivisor6,
+               shiftedDivisor7;
+   wire [15:0] remainder7,remainder8,remainder9,
+               remainder10,remainder11,remainder12,
+               remainder13;
+
+   ShiftLeft sll7(divisor,4'b0111,shiftedDivisor7);
+   ShiftLeft sll6(divisor,4'b0110,shiftedDivisor6);
+   ShiftLeft sll5(divisor,4'b0101,shiftedDivisor5);
+   ShiftLeft sll4(divisor,4'b0100,shiftedDivisor4);
+   ShiftLeft sll3(divisor,4'b0011,shiftedDivisor3);
+   ShiftLeft sll2(divisor,4'b0010,shiftedDivisor2);
+   ShiftLeft sll1(divisor,4'b0001,shiftedDivisor1);
+   assign quotient[15:8] = 8'b0;
+
+   divideModule divideM7(dividend,shiftedDivisor7,quotient[7],remainder7);
+   divideModule divideM8(remainder7,shiftedDivisor6,quotient[6],remainder8);
+   divideModule divideM9(remainder8,shiftedDivisor5,quotient[5],remainder9);
+   divideModule divideM10(remainder9,shiftedDivisor4,quotient[4],remainder10);
+   divideModule divideM11(remainder10,shiftedDivisor3,quotient[3],remainder11);
+   divideModule divideM12(remainder11,shiftedDivisor2,quotient[2],remainder12);
+   divideModule divideM13(remainder12,shiftedDivisor1,quotient[1],remainder13);
+   divideModule divideM14(remainder13,divisor,quotient[0],remainder);
+endmodule
+
+module eightShiftDivide(dividend,divisor, quotient, remainder);
+   input [15:0] dividend;
+   input [15:0] divisor;
+   output [15:0] quotient, remainder;
+   wire [15:0] shiftedDivisor1,shiftedDivisor2,shiftedDivisor3,
+               shiftedDivisor4,shiftedDivisor5,shiftedDivisor6,
+               shiftedDivisor7,shiftedDivisor8,shiftedDivisor9;
+   wire [15:0] remainder6,remainder7,remainder8,
+               remainder9,remainder10,remainder11,
+               remainder12,remainder13;
+
+   ShiftLeft sll8(divisor,4'b1000,shiftedDivisor8);
+   ShiftLeft sll7(divisor,4'b0111,shiftedDivisor7);
+   ShiftLeft sll6(divisor,4'b0110,shiftedDivisor6);
+   ShiftLeft sll5(divisor,4'b0101,shiftedDivisor5);
+   ShiftLeft sll4(divisor,4'b0100,shiftedDivisor4);
+   ShiftLeft sll3(divisor,4'b0011,shiftedDivisor3);
+   ShiftLeft sll2(divisor,4'b0010,shiftedDivisor2);
+   ShiftLeft sll1(divisor,4'b0001,shiftedDivisor1);
+   assign quotient[15:9] = 7'b0;
+
+   divideModule divideM6(dividend,shiftedDivisor8,quotient[8],remainder6);
+   divideModule divideM7(remainder6,shiftedDivisor7,quotient[7],remainder7);
+   divideModule divideM8(remainder7,shiftedDivisor6,quotient[6],remainder8);
+   divideModule divideM9(remainder8,shiftedDivisor5,quotient[5],remainder9);
+   divideModule divideM10(remainder9,shiftedDivisor4,quotient[4],remainder10);
+   divideModule divideM11(remainder10,shiftedDivisor3,quotient[3],remainder11);
+   divideModule divideM12(remainder11,shiftedDivisor2,quotient[2],remainder12);
+   divideModule divideM13(remainder12,shiftedDivisor1,quotient[1],remainder13);
+   divideModule divideM14(remainder13,divisor,quotient[0],remainder);
+endmodule
+
+module nineShiftDivide(dividend,divisor, quotient, remainder);
+   input [15:0] dividend;
+   input [15:0] divisor;
+   output [15:0] quotient, remainder;
+   wire [15:0] shiftedDivisor1,shiftedDivisor2,shiftedDivisor3,
+               shiftedDivisor4,shiftedDivisor5,shiftedDivisor6,
+               shiftedDivisor7,shiftedDivisor8,shiftedDivisor9;
+   wire [15:0] remainder5,remainder6,remainder7,
+               remainder8,remainder9,remainder10,
+               remainder11,remainder12,remainder13;
+
+   ShiftLeft sll9(divisor,4'b1001,shiftedDivisor9);
+   ShiftLeft sll8(divisor,4'b1000,shiftedDivisor8);
+   ShiftLeft sll7(divisor,4'b0111,shiftedDivisor7);
+   ShiftLeft sll6(divisor,4'b0110,shiftedDivisor6);
+   ShiftLeft sll5(divisor,4'b0101,shiftedDivisor5);
+   ShiftLeft sll4(divisor,4'b0100,shiftedDivisor4);
+   ShiftLeft sll3(divisor,4'b0011,shiftedDivisor3);
+   ShiftLeft sll2(divisor,4'b0010,shiftedDivisor2);
+   ShiftLeft sll1(divisor,4'b0001,shiftedDivisor1);
+   assign quotient[15:10] = 6'b0;
+
+   divideModule divideM5(dividend,shiftedDivisor9,quotient[9],remainder5);
+   divideModule divideM6(remainder5,shiftedDivisor8,quotient[8],remainder6);
+   divideModule divideM7(remainder6,shiftedDivisor7,quotient[7],remainder7);
+   divideModule divideM8(remainder7,shiftedDivisor6,quotient[6],remainder8);
+   divideModule divideM9(remainder8,shiftedDivisor5,quotient[5],remainder9);
+   divideModule divideM10(remainder9,shiftedDivisor4,quotient[4],remainder10);
+   divideModule divideM11(remainder10,shiftedDivisor3,quotient[3],remainder11);
+   divideModule divideM12(remainder11,shiftedDivisor2,quotient[2],remainder12);
+   divideModule divideM13(remainder12,shiftedDivisor1,quotient[1],remainder13);
+   divideModule divideM14(remainder13,divisor,quotient[0],remainder);
+endmodule
+
+module tenShiftDivide(dividend,divisor, quotient, remainder);
+   input [15:0] dividend;
+   input [15:0] divisor;
+   output [15:0] quotient, remainder;
+   wire [15:0] shiftedDivisor1,shiftedDivisor2,shiftedDivisor3,
+               shiftedDivisor4,shiftedDivisor5,shiftedDivisor6,
+               shiftedDivisor7,shiftedDivisor8,shiftedDivisor9,
+               shiftedDivisor10;
+   wire [15:0] remainder4,remainder5,remainder6,
+               remainder7,remainder8,remainder9,
+               remainder10,remainder11,remainder12,
+               remainder13;
+
+   ShiftLeft sll10(divisor,4'b1010,shiftedDivisor10);
+   ShiftLeft sll9(divisor,4'b1001,shiftedDivisor9);
+   ShiftLeft sll8(divisor,4'b1000,shiftedDivisor8);
+   ShiftLeft sll7(divisor,4'b0111,shiftedDivisor7);
+   ShiftLeft sll6(divisor,4'b0110,shiftedDivisor6);
+   ShiftLeft sll5(divisor,4'b0101,shiftedDivisor5);
+   ShiftLeft sll4(divisor,4'b0100,shiftedDivisor4);
+   ShiftLeft sll3(divisor,4'b0011,shiftedDivisor3);
+   ShiftLeft sll2(divisor,4'b0010,shiftedDivisor2);
+   ShiftLeft sll1(divisor,4'b0001,shiftedDivisor1);
+   assign quotient[15:11] = 5'b0;
+
+   divideModule divideM4(dividend,shiftedDivisor10,quotient[10],remainder4);
+   divideModule divideM5(remainder4,shiftedDivisor9,quotient[9],remainder5);
+   divideModule divideM6(remainder5,shiftedDivisor8,quotient[8],remainder6);
+   divideModule divideM7(remainder6,shiftedDivisor7,quotient[7],remainder7);
+   divideModule divideM8(remainder7,shiftedDivisor6,quotient[6],remainder8);
+   divideModule divideM9(remainder8,shiftedDivisor5,quotient[5],remainder9);
+   divideModule divideM10(remainder9,shiftedDivisor4,quotient[4],remainder10);
+   divideModule divideM11(remainder10,shiftedDivisor3,quotient[3],remainder11);
+   divideModule divideM12(remainder11,shiftedDivisor2,quotient[2],remainder12);
+   divideModule divideM13(remainder12,shiftedDivisor1,quotient[1],remainder13);
+   divideModule divideM14(remainder13,divisor,quotient[0],remainder);
+endmodule
+
+module elevenShiftDivide(dividend,divisor, quotient, remainder);
+   input [15:0] dividend;
+   input [15:0] divisor;
+   output [15:0] quotient, remainder;
+   wire [15:0] shiftedDivisor1,shiftedDivisor2,shiftedDivisor3,
+               shiftedDivisor4,shiftedDivisor5,shiftedDivisor6,
+               shiftedDivisor7,shiftedDivisor8,shiftedDivisor9,
+               shiftedDivisor10,shiftedDivisor11;
+   wire [15:0] remainder3,remainder4,remainder5,
+               remainder6,remainder7,remainder8,
+               remainder9,remainder10,remainder11,
+               remainder12,remainder13;
+
+   ShiftLeft sll11(divisor,4'b1011,shiftedDivisor11);
+   ShiftLeft sll10(divisor,4'b1010,shiftedDivisor10);
+   ShiftLeft sll9(divisor,4'b1001,shiftedDivisor9);
+   ShiftLeft sll8(divisor,4'b1000,shiftedDivisor8);
+   ShiftLeft sll7(divisor,4'b0111,shiftedDivisor7);
+   ShiftLeft sll6(divisor,4'b0110,shiftedDivisor6);
+   ShiftLeft sll5(divisor,4'b0101,shiftedDivisor5);
+   ShiftLeft sll4(divisor,4'b0100,shiftedDivisor4);
+   ShiftLeft sll3(divisor,4'b0011,shiftedDivisor3);
+   ShiftLeft sll2(divisor,4'b0010,shiftedDivisor2);
+   ShiftLeft sll1(divisor,4'b0001,shiftedDivisor1);
+   assign quotient[15:12] = 4'b0;
+
+   divideModule divideM3(dividend,shiftedDivisor11,quotient[11],remainder3);
+   divideModule divideM4(remainder3,shiftedDivisor10,quotient[10],remainder4);
+   divideModule divideM5(remainder4,shiftedDivisor9,quotient[9],remainder5);
+   divideModule divideM6(remainder5,shiftedDivisor8,quotient[8],remainder6);
+   divideModule divideM7(remainder6,shiftedDivisor7,quotient[7],remainder7);
+   divideModule divideM8(remainder7,shiftedDivisor6,quotient[6],remainder8);
+   divideModule divideM9(remainder8,shiftedDivisor5,quotient[5],remainder9);
+   divideModule divideM10(remainder9,shiftedDivisor4,quotient[4],remainder10);
+   divideModule divideM11(remainder10,shiftedDivisor3,quotient[3],remainder11);
+   divideModule divideM12(remainder11,shiftedDivisor2,quotient[2],remainder12);
+   divideModule divideM13(remainder12,shiftedDivisor1,quotient[1],remainder13);
+   divideModule divideM14(remainder13,divisor,quotient[0],remainder);
+endmodule
+
+module tweleveShiftDivide(dividend,divisor, quotient, remainder);
+   input [15:0] dividend;
+   input [15:0] divisor;
+   output [15:0] quotient, remainder;
+   wire [15:0] shiftedDivisor1,shiftedDivisor2,shiftedDivisor3,
+               shiftedDivisor4,shiftedDivisor5,shiftedDivisor6,
+               shiftedDivisor7,shiftedDivisor8,shiftedDivisor9,
+               shiftedDivisor10,shiftedDivisor11,shiftedDivisor12;
+   wire [15:0] remainder2,remainder3,
+               remainder4,remainder5,remainder6,
+               remainder7,remainder8,remainder9,
+               remainder10,remainder11,remainder12,
+               remainder13;
+
+   assign quotient[15:13] = 3'b0;
+   ShiftLeft sll12(divisor,4'b1100,shiftedDivisor12);
+   ShiftLeft sll11(divisor,4'b1011,shiftedDivisor11);
+   ShiftLeft sll10(divisor,4'b1010,shiftedDivisor10);
+   ShiftLeft sll9(divisor,4'b1001,shiftedDivisor9);
+   ShiftLeft sll8(divisor,4'b1000,shiftedDivisor8);
+   ShiftLeft sll7(divisor,4'b0111,shiftedDivisor7);
+   ShiftLeft sll6(divisor,4'b0110,shiftedDivisor6);
+   ShiftLeft sll5(divisor,4'b0101,shiftedDivisor5);
+   ShiftLeft sll4(divisor,4'b0100,shiftedDivisor4);
+   ShiftLeft sll3(divisor,4'b0011,shiftedDivisor3);
+   ShiftLeft sll2(divisor,4'b0010,shiftedDivisor2);
+   ShiftLeft sll1(divisor,4'b0001,shiftedDivisor1);
+
+   divideModule divideM2(dividend,shiftedDivisor12,quotient[12],remainder2);
+   divideModule divideM3(remainder2,shiftedDivisor11,quotient[11],remainder3);
+   divideModule divideM4(remainder3,shiftedDivisor10,quotient[10],remainder4);
+   divideModule divideM5(remainder4,shiftedDivisor9,quotient[9],remainder5);
+   divideModule divideM6(remainder5,shiftedDivisor8,quotient[8],remainder6);
+   divideModule divideM7(remainder6,shiftedDivisor7,quotient[7],remainder7);
+   divideModule divideM8(remainder7,shiftedDivisor6,quotient[6],remainder8);
+   divideModule divideM9(remainder8,shiftedDivisor5,quotient[5],remainder9);
+   divideModule divideM10(remainder9,shiftedDivisor4,quotient[4],remainder10);
+   divideModule divideM11(remainder10,shiftedDivisor3,quotient[3],remainder11);
+   divideModule divideM12(remainder11,shiftedDivisor2,quotient[2],remainder12);
+   divideModule divideM13(remainder12,shiftedDivisor1,quotient[1],remainder13);
+   divideModule divideM14(remainder13,divisor,quotient[0],remainder);
+endmodule
+
+module thirteenShiftDivide(dividend,divisor, quotient, remainder);
+   input [15:0] dividend;
+   input [15:0] divisor;
+   output [15:0] quotient, remainder;
+   wire [15:0] shiftedDivisor1,shiftedDivisor2,shiftedDivisor3,
+               shiftedDivisor4,shiftedDivisor5,shiftedDivisor6,
+               shiftedDivisor7,shiftedDivisor8,shiftedDivisor9,
+               shiftedDivisor10,shiftedDivisor11,shiftedDivisor12,
+               shiftedDivisor13;
+   wire [15:0] remainder1,remainder2,remainder3,
+               remainder4,remainder5,remainder6,
+               remainder7,remainder8,remainder9,
+               remainder10,remainder11,remainder12,
+               remainder13;
+   ShiftLeft sll13(divisor,4'b1101,shiftedDivisor13);
+   ShiftLeft sll12(divisor,4'b1100,shiftedDivisor12);
+   ShiftLeft sll11(divisor,4'b1011,shiftedDivisor11);
+   ShiftLeft sll10(divisor,4'b1010,shiftedDivisor10);
+   ShiftLeft sll9(divisor,4'b1001,shiftedDivisor9);
+   ShiftLeft sll8(divisor,4'b1000,shiftedDivisor8);
+   ShiftLeft sll7(divisor,4'b0111,shiftedDivisor7);
+   ShiftLeft sll6(divisor,4'b0110,shiftedDivisor6);
+   ShiftLeft sll5(divisor,4'b0101,shiftedDivisor5);
+   ShiftLeft sll4(divisor,4'b0100,shiftedDivisor4);
+   ShiftLeft sll3(divisor,4'b0011,shiftedDivisor3);
+   ShiftLeft sll2(divisor,4'b0010,shiftedDivisor2);
+   ShiftLeft sll1(divisor,4'b0001,shiftedDivisor1);
+   assign quotient[15:14] = 2'b0;
+
+   divideModule divideM1(dividend,shiftedDivisor13,quotient[13],remainder1);
+   divideModule divideM2(remainder1,shiftedDivisor12,quotient[12],remainder2);
+   divideModule divideM3(remainder2,shiftedDivisor11,quotient[11],remainder3);
+   divideModule divideM4(remainder3,shiftedDivisor10,quotient[10],remainder4);
+   divideModule divideM5(remainder4,shiftedDivisor9,quotient[9],remainder5);
+   divideModule divideM6(remainder5,shiftedDivisor8,quotient[8],remainder6);
+   divideModule divideM7(remainder6,shiftedDivisor7,quotient[7],remainder7);
+   divideModule divideM8(remainder7,shiftedDivisor6,quotient[6],remainder8);
+   divideModule divideM9(remainder8,shiftedDivisor5,quotient[5],remainder9);
+   divideModule divideM10(remainder9,shiftedDivisor4,quotient[4],remainder10);
+   divideModule divideM11(remainder10,shiftedDivisor3,quotient[3],remainder11);
+   divideModule divideM12(remainder11,shiftedDivisor2,quotient[2],remainder12);
+   divideModule divideM13(remainder12,shiftedDivisor1,quotient[1],remainder13);
+   divideModule divideM14(remainder13,divisor,quotient[0],remainder);
+endmodule
+
+module fourteenShiftDivide(dividend,divisor, quotient, remainder);
+   input [15:0] dividend;
+   input [15:0] divisor;
+   output [15:0] quotient, remainder;
+   wire [15:0] shiftedDivisor1,shiftedDivisor2,shiftedDivisor3,
+               shiftedDivisor4,shiftedDivisor5,shiftedDivisor6,
+               shiftedDivisor7,shiftedDivisor8,shiftedDivisor9,
+               shiftedDivisor10,shiftedDivisor11,shiftedDivisor12,
+               shiftedDivisor13,shiftedDivisor14;
+   wire [15:0] remainder0,remainder1,remainder2,
+               remainder3,remainder4,remainder5,
+               remainder6, remainder7,remainder8,
+               remainder9,remainder10,remainder11,
+               remainder12,remainder13,remainder14;
+   ShiftLeft sll14(divisor,4'b1110,shiftedDivisor14);
+   ShiftLeft sll13(divisor,4'b1101,shiftedDivisor13);
+   ShiftLeft sll12(divisor,4'b1100,shiftedDivisor12);
+   ShiftLeft sll11(divisor,4'b1011,shiftedDivisor11);
+   ShiftLeft sll10(divisor,4'b1010,shiftedDivisor10);
+   ShiftLeft sll9(divisor,4'b1001,shiftedDivisor9);
+   ShiftLeft sll8(divisor,4'b1000,shiftedDivisor8);
+   ShiftLeft sll7(divisor,4'b0111,shiftedDivisor7);
+   ShiftLeft sll6(divisor,4'b0110,shiftedDivisor6);
+   ShiftLeft sll5(divisor,4'b0101,shiftedDivisor5);
+   ShiftLeft sll4(divisor,4'b0100,shiftedDivisor4);
+   ShiftLeft sll3(divisor,4'b0011,shiftedDivisor3);
+   ShiftLeft sll2(divisor,4'b0010,shiftedDivisor2);
+   ShiftLeft sll1(divisor,4'b0001,shiftedDivisor1);
+   assign quotient[15] = 1'b0;
+
+   divideModule divideM0(dividend,shiftedDivisor14,quotient[14],remainder0);
+   divideModule divideM1(remainder0,shiftedDivisor13,quotient[13],remainder1);
+   divideModule divideM2(remainder1,shiftedDivisor12,quotient[12],remainder2);
+   divideModule divideM3(remainder2,shiftedDivisor11,quotient[11],remainder3);
+   divideModule divideM4(remainder3,shiftedDivisor10,quotient[10],remainder4);
+   divideModule divideM5(remainder4,shiftedDivisor9,quotient[9],remainder5);
+   divideModule divideM6(remainder5,shiftedDivisor8,quotient[8],remainder6);
+   divideModule divideM7(remainder6,shiftedDivisor7,quotient[7],remainder7);
+   divideModule divideM8(remainder7,shiftedDivisor6,quotient[6],remainder8);
+   divideModule divideM9(remainder8,shiftedDivisor5,quotient[5],remainder9);
+   divideModule divideM10(remainder9,shiftedDivisor4,quotient[4],remainder10);
+   divideModule divideM11(remainder10,shiftedDivisor3,quotient[3],remainder11);
+   divideModule divideM12(remainder11,shiftedDivisor2,quotient[2],remainder12);
+   divideModule divideM13(remainder12,shiftedDivisor1,quotient[1],remainder13);
+   divideModule divideM14(remainder13,divisor,quotient[0],remainder);
+endmodule
+
+module fifteenShiftDivide(dividend,divisor, quotient, remainder);
+   //If you have to shift the dividend over fifteen then you are dividing by 1
+   input [15:0] dividend,divisor;
+   output [15:0] quotient, remainder;
+   assign quotient = dividend;
+   assign remainder = 0;
+endmodule
+
 module testbench();
-// reg [31:0] dividend = 10000;
-// reg [31:0] divisor = 1000;
-// wire [31:0] quotient;
-// wire [31:0] remainder;
-parameter n = 16;
-reg [15:0] dividend = 16'b1000_0000_0000_0000;
-reg [15:0] divisor = 4'b1000;
-wire [5:0] quotient;
-wire [2:0] remainder;
-wire cout;
-wire [3:0] diff;
+   parameter n = 16;
+   reg [15:0] dividend = 16'b0100_0000_0000_0000;
+   reg [15:0] divisor = 16'b0000_0000_0000_0010;
+   wire [15:0] quotient;
+   wire [15:0] remainder;
+   wire cout;
+   wire [3:0] diff;
 
-reg [15:0] test3 = 16'b0100_0000_0000_0000;
-reg [15:0] test4 = 16'b0010_0000_0000_0000;
-reg [15:0] test5 = 16'b0001_0000_0000_0000;
-reg shiftAmount = 1'b1;
-wire [15:0] shiftResult;
-wire [15:0] muxResult;
-wire [3:0] peAnswer0;
-wire [3:0] peAnswer1;
-wire [3:0] selector = 4'b1111;
-wire valid0,valid1;
+   wire [15:0] shiftResult;
+   wire [3:0] peAnswer0;
+   wire [3:0] peAnswer1;
 
-//Divide D(ready,quotient,remainder,dividend,divider,sign,clk);
-//Sub #(5) S(test2,test1,cout,sum);
-//Sub S(test2,test1,cout,sum);
-//AddSub1 #(5) As(test4,test3,1'b1,sum,overflow);
-divide d(dividend, divisor, quotient, remainder);
-sixteenBitPriorityEncoder PE0(test3,peAnswer0, valid0);
-sixteenBitPriorityEncoder PE1(test4,peAnswer1, valid1);
-sixteenBitMux mux16(1'b0,1'b1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,selector,muxResult);
-ShiftRight sr(test5,shiftAmount,shiftResult);
-Sub #(n) S(peAnswer0,peAnswer1,cout,diff);
+   //Divide D(ready,quotient,remainder,dividend,divider,sign,clk);
+   //Sub #(5) S(test2,test1,cout,sum);
+   //Sub S(test2,test1,cout,sum);
+   //AddSub1 #(5) As(test4,test3,1'b1,sum,overflow);
+   divide d(dividend, divisor, quotient, remainder);
+   Sub #(4) S(peAnswer0,peAnswer1,cout,diff);
 
-initial begin
-   #10 $display("Dividend: %d, Divisor: %d, Quotient: %d, Remainder: %d",dividend, divisor, quotient,remainder);
-   #10 $display("%d - %d =%d ovf:%b",peAnswer0,peAnswer1,diff,cout);
-   #10 $display("%b %b",selector,muxResult);
-   #10 $display("%b %b",peAnswer1,valid1);
-   #10 $display("Dividend: %b. Divisor: %b.",dividend,divisor);
-end
+   initial begin
+      #10 $display("Dividend: %d, Divisor: %d, Quotient: %d, Remainder: %d",dividend,divisor, quotient,remainder);
+      #10 $display("Dividend: %b. Divisor: %b. Quotient: %b. Reaminder: %b",dividend,divisor,quotient,remainder);
+   end
 
 endmodule
