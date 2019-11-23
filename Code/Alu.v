@@ -1192,37 +1192,171 @@ module testbench();
    // | 1011 | divide    |
    // | 1100 | shift <-  |
    // | 1101 | shift ->  |
-   wire signed [15:0] val1 = 32768;
-   wire signed [15:0] val2 = 32768;
-   wire [15:0] result1, result2;
-   reg [31:0]  MultResult;
-   wire [1:0]  status;
-   reg [3:0]   Opcode = 4'b1000;
-   wire [3:0]  opcode = Opcode;
-  
+   reg clock = 0;
+   reg signed [15:0] Val1;
+   wire signed [15:0] val1 = Val1;
+   reg signed [15:0]  Val2;
+   wire signed [15:0] val2 = Val2;
+   reg signed [15:0]         Result1, Result2;
+   wire signed [15:0]        result1, result2;
+   reg signed [31:0]         MultResult;
+   reg [1:0]          Status;
+   wire [1:0]         status;
+   reg [3:0]          Opcode;
+   wire [3:0]         opcode = Opcode;
+   
    ALU G(opcode, val1, val2, result1, result2, status);
 
    initial begin
-      // for debugging
-      // $display("AND: \t%16b", G.resultAnd);
-      // $display("NAND: \t%16b", G.resultNand);
-      // $display("OR: \t%16b", G.resultOr);
-      // $display("NOR: \t%16b", G.resultNor);
-      // $display("XOR: \t%16b", G.resultXor);
-      // $display("XNOR: \t%16b", G.resultXnor);
-      // $display("NOT: \t%16b", G.resultNot);
-      // $display("ADD: \t%16b", G.resultAdd);
-      // $display("SUB: \t%16b", G.resultSub);
-      // #100 $display("MULT: \t%16b", G.resultMult);
-      // $display("SL: \t%16b", G.resultSL);
-      // $display("SR: \t%16b", G.resultSR);
-      // #10 MultResult = result2;
-      // MultResult = result1 + (MultResult << 16);
-      // $display("ALU: %b : %d", status, result1);
-      
-      
+      forever begin
+         #10 clock = 1;
+         #10 clock = 0;
+      end
    end
-              
+
+   initial begin
+      // noop6
+      Opcode = 4'b0000;
+      Val1 = 0;
+      Val2 = 0;
+      #11 Result1 = result1;
+      Result2 = result2;
+      Status = status;
+      $display("NOOP: \n\tresult: %b\n\tstatus: %b", Result1, Status);
+      // and
+      Opcode = 4'b0001;
+      Val1 = 16'b0101001001010110;
+      Val2 = 16'b0010100101010101;
+      #10 Result1 = result1;
+      Result2 = result2;
+      Status = status;
+      $display("AND: \n\t%b and \n\t%b == \n\t%b", Val1, Val2, Result1);
+      // nand
+      Opcode = 4'b0010;
+      Val1 = 16'b0101001001010110;
+      Val2 = 16'b0010100101010101;
+      #10 Result1 = result1;
+      Result2 = result2;
+      Status = status;
+      $display("NAND: \n\t%b nand \n\t%b == \n\t%b", Val1, Val2, Result1);
+      // or
+      Opcode = 4'b0011;
+      Val1 = 16'b0101001001010110;
+      Val2 = 16'b0010100101010101;
+      #10 Result1 = result1;
+      Result2 = result2;
+      Status = status;
+      $display("OR: \n\t%b or \n\t%b == \n\t%b", Val1, Val2, Result1);
+      // nor
+      Opcode = 4'b0100;
+      Val1 = 16'b0101001001010110;
+      Val2 = 16'b0010100101010101;
+      #10 Result1 = result1;
+      Result2 = result2;
+      Status = status;
+      $display("NOR: \n\t%b nor \n\t%b == \n\t%b", Val1, Val2, Result1);
+      // xor
+      Opcode = 4'b0101;
+      Val1 = 16'b0101001001010110;
+      Val2 = 16'b0010100101010101;
+      #10 Result1 = result1;
+      Result2 = result2;
+      Status = status;
+      $display("XOR: \n\t%b xor \n\t%b == \n\t%b", Val1, Val2, Result1);
+      // xnor
+      Opcode = 4'b0110;
+      Val1 = 16'b0101001001010110;
+      Val2 = 16'b0010100101010101;
+      #10 Result1 = result1;
+      Result2 = result2;
+      Status = status;
+      $display("XNOR: \n\t%b xnor \n\t%b == \n\t%b", Val1, Val2, Result1);
+      // not
+      Opcode = 4'b0111;
+      Val1 = 16'b0101001001010110;
+      Val2 = 0;
+      #10 Result1 = result1;
+      Result2 = result2;
+      Status = status;
+      $display("XOR: \n\t%b not == \n\t%b", Result1, Result2, Status);
+      // add
+      Opcode = 4'b1000;
+      Val1 = 15;
+      Val2 = 399;
+      #10 Result1 = result1;
+      Result2 = result2;
+      Status = status;
+      $display("ADD: \n\t %b + \n\t %b == \n\t%b%b", Val1, Val2, Result2[0], Result1);
+      // sub
+      Opcode = 4'b1001;
+      Val1 = 16'b0101001001010110;
+      Val2 = 16'b0010100101010101;
+      #10 Result1 = result1;
+      Result2 = result2;
+      Status = status;
+      $display("SUBTRACT: \n\t %b - \n\t %b == \n\t%b%b", Val1, Val2, Result2[0], Result1);
+      // mult
+      Opcode = 4'b1010;
+      Val1 = 345;
+      Val2 = 2487;
+      #10 Result1 = result1;
+      MultResult = result2;
+      MultResult = result1 + (MultResult << 16);
+      Status = status;
+      $display("MULTIPLY: \n%16d x \n%16d == \n%16d", Val1, Val2, MultResult);
+      // div
+      Opcode = 4'b1011;
+      Val1 = 344;
+      Val2 = 16;
+      #10 Result1 = result1;
+      Result2 = result2;
+      Status = status;
+      $display("DIVIDE: \n\t%d / \n\t%d == \n\t%d with remainder %d", Val1, Val2, Result1,Result2);
+      //shift left
+      Opcode = 4'b1100;
+      Val1 = 16'b0000010101000000;
+      Val2 = 3;
+      #10 Result1 = result1;
+      Result2 = result2;
+      Status = status;
+      $display("SHIFT_LEFT: \n\t%b << %d \n\t%b", Val1, Val2, Result1);
+      // shift right
+      Opcode = 4'b1101;
+      Val1 = 16'b0000010101000000;
+      Val2 = 4;
+      #10 Result1 = result1;
+      Result2 = result2;
+      Status = status;
+      $display("SHIFT_RIGHT: \n\t%b >> %d \n\t%b", Val1, Val2, Result1);
+      $finish;
+   end
+
+
+
+
+
+
+
+   
+   // initial begin
+   // for debuggi#ng
+   // $display("AND; \t%16b", G.resultAnd);
+   // $display("NAND: \t%16b", G.resultNand);
+   // $display("OR: \t%16b", G.resultOr);
+   // $display("NOR: \t%16b", G.resultNor);
+   // $display("XOR: \t%16b", G.resultXor);
+   // $display("XNOR: \t%16b", G.resultXnor);
+   // $display("NOT: \t%16b", G.resultNot);
+   // $display("ADD: \t%16b", G.resultAdd);
+   // $display("SUB: \t%16b", G.resultSub);
+   // #100 $display("MULT: \t%16b", G.resultMult);
+   // $display("SL: \t%16b", G.resultSL);
+   // $display("SR: \t%16b", G.resultSR);
+   // #10 MultResult = result2;
+   // MultResult = result1 + (MultResult << 16);
+   // $display("ALU: %b : %d", status, result1);
+   // end
+   
    ////////////////////
    // test Add
    ////////////////////
