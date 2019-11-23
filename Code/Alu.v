@@ -1215,6 +1215,7 @@ module testbench();
    end
 
    initial begin
+      $display("OPERATIONS:");
       // noop6
       Opcode = 4'b0000;
       Val1 = 0;
@@ -1328,16 +1329,44 @@ module testbench();
       Result2 = result2;
       Status = status;
       $display("SHIFT_RIGHT: \n\t%b >> %d \n\t%b", Val1, Val2, Result1);
+      $display("\nSTATUS:");
+      // mult no error
+      Opcode = 4'b1010;
+      Val1 = 345;
+      Val2 = 2487;
+      #10 Result1 = result1;
+      MultResult = result2;
+      MultResult = result1 + (MultResult << 16);
+      Status = status;
+      $display("NO_ERROR: \n%16d x \n%16d == \n%16d with status %b", Val1, Val2, MultResult, Status);
+      // add carry over
+      Opcode = 4'b1000;
+      Val1 = 16'b1111111111111111;
+      Val2 = 1;
+      #10 Result1 = result1;
+      Result2 = result2;
+      Status = status;
+      $display("CARRY_OVER: \n\t %b + \n\t %b == \n\t%b%b with status %b", Val1, Val2, Result2[0], Result1, Status);
+      // add overflow
+      Opcode = 4'b1000;
+      Val1 = 16'b0111111111111111;
+      Val2 = 16'b0111111111100000;
+      #10 Result1 = result1;
+      Result2 = result2;
+      Status = status;
+      $display("OVERFLOW: \n\t %b + \n\t %b == \n\t%b%b with status %b", Val1, Val2, Result2[0], Result1, Status);
+      // div divide by zero
+      Opcode = 4'b1011;
+      Val1 = 344;
+      Val2 = 0;
+      #10 Result1 = result1;
+      Result2 = result2;
+      Status = status;
+      $display("DIVIDE_BY_ZERO: \n\t%d / \n\t%d == \n\t%d with remainder %d <--- this output is and should be nonsense\n\twith status %b", Val1, Val2, Result1,Result2, Status);
       $finish;
    end
 
 
-
-
-
-
-
-   
    // initial begin
    // for debuggi#ng
    // $display("AND; \t%16b", G.resultAnd);
