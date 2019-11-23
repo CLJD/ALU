@@ -11,15 +11,14 @@
 * DONE Final Deliverables [42%]
     * *Updated Report*
     * [X] Title Page - Dylan
-    * [ ] Updated Report - Dylan
     * [X] Updated Description - Dylan
     * [X] Updated Member Tasks List - All
     * [X] Updated Software Discovery - Liora
     * [X] Updated Participation Census - Liora
     * *System Design*
     * [X] Title Page - Charles
-    * [ ] Parts List - Dylan
-    * [ ] Input List - Dylan
+    * [X] Parts List - Dylan
+    * [X] Input List - Dylan
     * [ ] Output List - Dylan
     * [ ] Interface List - Dylan
     * [ ] Module List - Charles
